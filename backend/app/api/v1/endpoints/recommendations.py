@@ -21,8 +21,20 @@ def get_recommendation(
     Computes an explainable cross-brand size recommendation for a target garment.
     Uses authenticated user profile/history if available, or manual request measurements.
     """
-    # If request doesn't explicitly specify user_id, inherit from authenticated user
-    if request.user_id is None and current_user is not None:
+    # Enforce user isolation:
+    # If user_id is specified, caller must be authenticated as that user (or ADMIN)
+    if request.user_id is not None:
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to access user fit history. Provide direct manual measurements for guest recommendations.",
+            )
+        if current_user.user_id != request.user_id and current_user.role != "ADMIN":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: Cannot request recommendations on behalf of another user.",
+            )
+    elif current_user is not None:
         request.user_id = current_user.user_id
 
     try:

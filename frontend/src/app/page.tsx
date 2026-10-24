@@ -18,18 +18,19 @@ import {
 // API Base URL
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Demo Users for fast switching during evaluation
+// Demo Users for fast switching during evaluation (authenticated via Member B auth)
 const DEMO_USERS = [
-  { id: 2, name: "Priya Sharma", note: "Kept Levis sz 28 (Good fit) — Ideal cross-brand demo" },
-  { id: 3, name: "Ananya Rao", note: "Petite (Waist 64cm), Kept sz 26 (Tight fit)" },
-  { id: 5, name: "Kavya Iyer", note: "Multi-brand evidence (Levis, Mango, Madewell)" },
-  { id: 10, name: "Lakshmi Reddy", note: "Cold-start test (No profile, no purchases)" },
+  { id: 2, name: "Priya Sharma", email: "priya@example.com", note: "Kept Levis sz 28 (Good fit) — Ideal cross-brand demo" },
+  { id: 3, name: "Ananya Rao", email: "ananya@example.com", note: "Petite (Waist 64cm), Kept sz 26 (Tight fit)" },
+  { id: 5, name: "Kavya Iyer", email: "kavya@example.com", note: "Multi-brand evidence (Levis, Mango, Madewell)" },
+  { id: 10, name: "Lakshmi Reddy", email: "lakshmi@example.com", note: "Cold-start test (No profile, no purchases)" },
 ];
 
 export default function FitCheckMemberA() {
   // Navigation
   const [activeTab, setActiveTab] = useState<"recommend" | "profile" | "purchases" | "catalogue">("recommend");
   const [selectedUserId, setSelectedUserId] = useState<number>(2);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   // Data states
   const [brands, setBrands] = useState<any[]>([]);
@@ -71,6 +72,25 @@ export default function FitCheckMemberA() {
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Helper: Authenticate with Member B's login endpoint to obtain real JWT
+  const loginDemoPersona = async (email: string): Promise<string | null> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "password123" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuthToken(data.access_token);
+        return data.access_token;
+      }
+    } catch (err) {
+      console.warn("Auto-login note: Backend offline or B-auth pending.", err);
+    }
+    return null;
+  };
+
   // Initial load
   useEffect(() => {
     checkHealth();
@@ -78,11 +98,16 @@ export default function FitCheckMemberA() {
     fetchGarments();
   }, []);
 
-  // When selected user changes, reload profile and purchases
+  // When selected user changes, login and reload profile + purchases
   useEffect(() => {
     if (selectedUserId) {
-      fetchUserProfile(selectedUserId);
-      fetchUserPurchases(selectedUserId);
+      const user = DEMO_USERS.find((u) => u.id === selectedUserId);
+      if (user) {
+        loginDemoPersona(user.email).then((token) => {
+          fetchUserProfile(token);
+          fetchUserPurchases(token);
+        });
+      }
       setRecommendation(null);
       setRecError(null);
     }
@@ -156,10 +181,15 @@ export default function FitCheckMemberA() {
     }
   };
 
-  // API Call: User Profile
-  const fetchUserProfile = async (userId: number) => {
+  // API Call: User Profile (authenticated)
+  const fetchUserProfile = async (tokenOverride?: string | null) => {
+    const activeToken = tokenOverride !== undefined ? tokenOverride : authToken;
     try {
-      const res = await fetch(`${API_BASE}/profile?user_id=${userId}`);
+      const headers: Record<string, string> = {};
+      if (activeToken) {
+        headers["Authorization"] = `Bearer ${activeToken}`;
+      }
+      const res = await fetch(`${API_BASE}/profile`, { headers });
       if (res.ok) {
         const data = await res.json();
         setProfile(data);
@@ -187,7 +217,7 @@ export default function FitCheckMemberA() {
     }
   };
 
-  // API Call: Save Profile
+  // API Call: Save Profile (authenticated)
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileSaveStatus("Saving...");
@@ -201,9 +231,14 @@ export default function FitCheckMemberA() {
       if (profileForm.thigh) payload.thigh = parseFloat(profileForm.thigh);
       if (profileForm.inseam) payload.inseam = parseFloat(profileForm.inseam);
 
-      const res = await fetch(`${API_BASE}/profile?user_id=${selectedUserId}`, {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const res = await fetch(`${API_BASE}/profile`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -221,10 +256,15 @@ export default function FitCheckMemberA() {
     }
   };
 
-  // API Call: Fetch Purchases
-  const fetchUserPurchases = async (userId: number) => {
+  // API Call: Fetch Purchases (authenticated)
+  const fetchUserPurchases = async (tokenOverride?: string | null) => {
+    const activeToken = tokenOverride !== undefined ? tokenOverride : authToken;
     try {
-      const res = await fetch(`${API_BASE}/purchases?user_id=${userId}`);
+      const headers: Record<string, string> = {};
+      if (activeToken) {
+        headers["Authorization"] = `Bearer ${activeToken}`;
+      }
+      const res = await fetch(`${API_BASE}/purchases`, { headers });
       if (res.ok) {
         const data = await res.json();
         setPurchases(data);
@@ -236,7 +276,7 @@ export default function FitCheckMemberA() {
     }
   };
 
-  // API Call: Record New Purchase
+  // API Call: Record New Purchase (authenticated)
   const handleCreatePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPurchaseForm.garment_size_id) return;
@@ -248,14 +288,18 @@ export default function FitCheckMemberA() {
         fit_satisfaction: newPurchaseForm.fit_satisfaction,
         fit_preference: newPurchaseForm.fit_preference,
       };
-      const res = await fetch(`${API_BASE}/purchases?user_id=${selectedUserId}`, {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+      const res = await fetch(`${API_BASE}/purchases`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(payload),
       });
       if (res.ok) {
         setPurchaseStatus("Purchase recorded in database!");
-        fetchUserPurchases(selectedUserId);
+        fetchUserPurchases();
         setTimeout(() => setPurchaseStatus(null), 3000);
       } else {
         const err = await res.json();
@@ -276,14 +320,22 @@ export default function FitCheckMemberA() {
     try {
       const payload: any = {
         target_garment_id: selectedGarmentId,
-        user_id: selectedUserId,
       };
+      // Scoped to current authenticated user
+      if (authToken) {
+        payload.user_id = selectedUserId;
+      }
       if (manualWaist) payload.waist = parseFloat(manualWaist);
       if (manualHip) payload.hip = parseFloat(manualHip);
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
       const res = await fetch(`${API_BASE}/recommendations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -352,9 +404,14 @@ export default function FitCheckMemberA() {
               </option>
             ))}
           </select>
-          <span style={{ fontSize: "0.75rem", color: "var(--accent-purple)" }}>
-            {DEMO_USERS.find((u) => u.id === selectedUserId)?.note}
-          </span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "2px" }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--accent-purple)" }}>
+              {DEMO_USERS.find((u) => u.id === selectedUserId)?.note}
+            </span>
+            <span style={{ fontSize: "0.75rem", color: authToken ? "#10b981" : "#94a3b8" }}>
+              {authToken ? "✓ Bearer JWT Active" : "• Guest / Unauthenticated"}
+            </span>
+          </div>
         </div>
       </header>
 

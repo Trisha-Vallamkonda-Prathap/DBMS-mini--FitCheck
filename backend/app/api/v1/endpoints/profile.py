@@ -1,37 +1,28 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
 from backend.app.models import BodyProfile, User
 from backend.app.schemas import BodyProfileUpdate, BodyProfileOut
-from backend.app.api.deps import get_optional_user, get_current_user
+from backend.app.api.deps import get_current_user
 
 router = APIRouter()
 
 
 @router.get("/profile", response_model=BodyProfileOut)
 def get_profile(
-    user_id: Optional[int] = Query(None, description="Optional user ID for testing/demo"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Retrieves the body profile for the current user.
-    Uses authenticated user if available; falls back to user_id parameter for demo/testing.
+    Retrieves the body profile for the authenticated user.
+    Strictly isolated: users can only access their own profile.
     """
-    target_user_id = current_user.user_id if current_user else user_id
-    if not target_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required or provide a user_id parameter for demo/testing.",
-        )
-
-    profile = db.query(BodyProfile).filter(BodyProfile.user_id == target_user_id).first()
+    profile = db.query(BodyProfile).filter(BodyProfile.user_id == current_user.user_id).first()
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Body profile for user ID {target_user_id} was not found.",
+            detail=f"Body profile for user '{current_user.name}' was not found.",
         )
     return profile
 
@@ -39,41 +30,18 @@ def get_profile(
 @router.put("/profile", response_model=BodyProfileOut)
 def upsert_profile(
     profile_in: BodyProfileUpdate,
-    user_id: Optional[int] = Query(None, description="Optional user ID for testing/demo"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Creates or updates the body profile for the current user.
+    Creates or updates the body profile for the authenticated user.
+    Strictly isolated: users can only modify their own profile.
     """
-    target_user_id = current_user.user_id if current_user else user_id
-    if not target_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required or provide a user_id parameter for demo/testing.",
-        )
-
-    # Check that user exists
-    user = db.query(User).filter(User.user_id == target_user_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with ID {target_user_id} does not exist.",
-        )
-
-    # Validate logical consistency: hip shouldn't be drastically smaller than waist if both provided
-    if profile_in.waist is not None and profile_in.hip is not None:
-        if profile_in.hip < profile_in.waist:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Hip measurement cannot be smaller than waist measurement.",
-            )
-
-    profile = db.query(BodyProfile).filter(BodyProfile.user_id == target_user_id).first()
+    profile = db.query(BodyProfile).filter(BodyProfile.user_id == current_user.user_id).first()
 
     if not profile:
         profile = BodyProfile(
-            user_id=target_user_id,
+            user_id=current_user.user_id,
             height=profile_in.height,
             waist=profile_in.waist,
             hip=profile_in.hip,

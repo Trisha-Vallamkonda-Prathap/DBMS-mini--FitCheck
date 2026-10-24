@@ -199,6 +199,7 @@ class RecommendationResponse(BaseModel):
     category: str
     fit_type: str
     primary_recommendation: Optional[SizeScoreBreakdown] = None
+    top_recommendations: List[SizeScoreBreakdown] = []
     all_sizes_ranked: List[SizeScoreBreakdown] = []
     evidence_sources: List[str] = []
     confidence: str

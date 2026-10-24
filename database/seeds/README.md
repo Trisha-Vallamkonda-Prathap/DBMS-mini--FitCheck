@@ -13,11 +13,34 @@ To ensure meaningful recommendations during evaluation and viva defense:
 
 ## 3. Seed Execution Order (Referential Order)
 Due to foreign key dependencies, data must be inserted in this exact sequence:
-1. `USER` (Default demo accounts: `admin@fitcheck.local`, `shopper1@fitcheck.local`)
-2. `BODY_PROFILE` (Linked to shoppers)
-3. `BRAND` (Levi's, Zara, H&M, Madewell)
-4. `GARMENT` (Ribcage Straight Jeans, Z1975 Wide Leg, Wide High Jeans)
-5. `GARMENT_SIZE` (26, 27, 28, 29, 30, S, M, L, 36, 38, 40)
-6. `GARMENT_MEASUREMENT` (Waist, Hip, Inseam, Rise, Thigh in cm)
-7. `PURCHASE` (Historic kept/returned purchases)
-8. `FIT_REVIEW` (Qualitative reviews with rich vocabulary for vector search)
+1. `USER` (10 synthetic users + 1 admin) — Member A seed
+2. `BODY_PROFILE` (8 profiles for users 2–9) — Member A seed
+3. `BRAND` (5 brands: Levis, Zara, H&M, Mango, Madewell) — Member A seed
+4. `GARMENT` (14 garments across Jeans and Trousers) — Member A seed
+5. `GARMENT_SIZE` (70 total sizes, 5 per garment) — Member A seed
+6. `GARMENT_MEASUREMENT` (310 dimensional measurements: waist, hip, thigh, inseam, rise) — Member A seed
+7. `PURCHASE` (30 structured purchases with varied outcomes and satisfaction) — Member A seed
+8. `FIT_REVIEW` — **Member B owned** (qualitative fit reviews and vector embeddings)
+
+## 4. Synthetic Data Disclaimer
+All personal names, emails (`@example.com`), purchase logs, and measurement profiles in `seed_data.sql` are **100% synthetic** and generated purely for academic evaluation and software testing. No real customer or proprietary brand measurement charts were copied or exposed.
+
+## 5. Seed Execution & Safe Reset Commands
+
+### To seed an existing, clean `fitcheck` database:
+```bash
+mysql -u fitcheck_user -p fitcheck < database/seeds/seed_data.sql
+```
+
+### Safe Reset Procedure (Disposable Environment Only):
+> [!WARNING]
+> Do NOT execute destructive schema recreation against production or shared environments!
+> Only run against a verified disposable local development database.
+
+```bash
+# 1. Execute schema creation (drops and recreates tables)
+mysql -u root -p < database/fitcheck_setup.sql
+
+# 2. Populate Member A structured dataset
+mysql -u fitcheck_user -p fitcheck < database/seeds/seed_data.sql
+```

@@ -1,33 +1,26 @@
-from typing import List, Optional
+from typing import List
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.core.database import get_db
 from backend.app.models import Purchase, GarmentSize, Garment, Brand, User
 from backend.app.schemas import PurchaseCreate, PurchaseOut
-from backend.app.api.deps import get_optional_user
+from backend.app.api.deps import get_current_user
 
 router = APIRouter()
 
 
 @router.get("/purchases", response_model=List[PurchaseOut])
 def get_purchases(
-    user_id: Optional[int] = Query(None, description="Optional user ID for testing/demo"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Retrieves purchase history for the current user.
+    Retrieves purchase history for the authenticated user.
+    Strictly isolated: users can only see their own purchase records.
     Includes joined garment name, brand name, and size label.
     """
-    target_user_id = current_user.user_id if current_user else user_id
-    if not target_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required or provide a user_id parameter for demo/testing.",
-        )
-
     purchases = (
         db.query(Purchase)
         .options(
@@ -35,7 +28,7 @@ def get_purchases(
             .joinedload(GarmentSize.garment)
             .joinedload(Garment.brand)
         )
-        .filter(Purchase.user_id == target_user_id)
+        .filter(Purchase.user_id == current_user.user_id)
         .order_by(Purchase.purchase_date.desc(), Purchase.purchase_id.desc())
         .all()
     )
@@ -66,29 +59,13 @@ def get_purchases(
 @router.post("/purchases", response_model=PurchaseOut, status_code=status.HTTP_201_CREATED)
 def create_purchase(
     purchase_in: PurchaseCreate,
-    user_id: Optional[int] = Query(None, description="Optional user ID for testing/demo"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Records a new purchase and fit outcome for the current user.
+    Records a new purchase and fit outcome for the authenticated user.
     Validates that the garment size exists.
     """
-    target_user_id = current_user.user_id if current_user else user_id
-    if not target_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required or provide a user_id parameter for demo/testing.",
-        )
-
-    # Validate target user exists
-    user = db.query(User).filter(User.user_id == target_user_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with ID {target_user_id} was not found.",
-        )
-
     # Validate garment_size_id exists
     garment_size = (
         db.query(GarmentSize)
@@ -103,7 +80,7 @@ def create_purchase(
         )
 
     new_purchase = Purchase(
-        user_id=target_user_id,
+        user_id=current_user.user_id,
         garment_size_id=purchase_in.garment_size_id,
         purchase_date=purchase_in.purchase_date or date.today(),
         outcome=purchase_in.outcome,

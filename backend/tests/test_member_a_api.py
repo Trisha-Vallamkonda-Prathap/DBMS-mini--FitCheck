@@ -76,8 +76,8 @@ def test_profile_lifecycle(client):
     assert updated["waist"] == 69.0
     assert updated["preferred_fit"] == "TIGHT"
 
-    # Inconsistent measurements (hip < waist) should fail
-    bad_payload = {"waist": 90.0, "hip": 70.0}
+    # Negative measurement should fail validation with 422
+    bad_payload = {"waist": -5.0}
     bad_res = client.put("/api/v1/profile", json=bad_payload, headers=headers)
     assert bad_res.status_code == 422
 
@@ -131,4 +131,39 @@ def test_recommendation_api_endpoint(client):
     assert rec["target_brand_name"] == "Zara"
     assert rec["primary_recommendation"]["size_label"] == "38"
     assert len(rec["all_sizes_ranked"]) > 0
+    assert len(rec["top_recommendations"]) <= 3
     assert "explanation" in rec
+
+
+def test_auth_isolation_profile_and_purchases(client):
+    """Verifies that accessing /profile or /purchases without authentication returns 401."""
+    # Profile GET without auth
+    resp = client.get("/api/v1/profile")
+    assert resp.status_code == 401
+
+    # Profile PUT without auth
+    resp = client.put("/api/v1/profile", json={"waist": 70.0})
+    assert resp.status_code == 401
+
+    # Purchases GET without auth
+    resp = client.get("/api/v1/purchases")
+    assert resp.status_code == 401
+
+    # Purchases POST without auth
+    resp = client.post("/api/v1/purchases", json={"garment_size_id": 1, "outcome": "KEPT"})
+    assert resp.status_code == 401
+
+
+def test_recommendation_user_isolation(client):
+    """Verifies that a non-admin user cannot request recommendations on behalf of another user_id."""
+    token = create_access_token(subject=2, role="USER")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to request recommendations for user 3
+    req_payload = {
+        "target_garment_id": 2,
+        "user_id": 3,
+    }
+    resp = client.post("/api/v1/recommendations", json=req_payload, headers=headers)
+    assert resp.status_code == 403
+    assert "Cannot request recommendations on behalf of another user" in resp.json()["detail"]

@@ -99,3 +99,39 @@ def test_monotonic_score_ranking(db_session):
     scores = [s.match_score for s in result.all_sizes_ranked]
     for i in range(len(scores) - 1):
         assert scores[i] >= scores[i + 1]
+
+
+def test_top_recommendations_capped_at_three(db_session):
+    """Validates that top_recommendations returns at most 3 sizes."""
+    request = RecommendationRequest(
+        target_garment_id=2,
+        user_id=2,
+    )
+    result = compute_size_recommendation(db=db_session, request=request)
+    assert len(result.top_recommendations) == min(3, len(result.all_sizes_ranked))
+    assert result.top_recommendations[0].garment_size_id == result.primary_recommendation.garment_size_id
+
+
+def test_rise_and_category_handling(db_session):
+    """Validates rise inclusion in DEFAULT_WEIGHTS and dimensional deltas."""
+    from backend.app.services.recommendation_service import DEFAULT_WEIGHTS
+    assert "rise" in DEFAULT_WEIGHTS
+    assert DEFAULT_WEIGHTS["rise"] == 0.06
+    # Ensure sum of weights equals 1.0
+    assert round(sum(DEFAULT_WEIGHTS.values()), 4) == 1.0
+
+
+def test_category_matching_and_notes(db_session):
+    """Validates that recommendations provide category evidence and dimensional notes."""
+    request = RecommendationRequest(
+        target_garment_id=2,  # Zara Z1975 Wide Leg (Jeans)
+        user_id=2,           # User 2 has kept Levis 501 (Jeans)
+    )
+    result = compute_size_recommendation(db=db_session, request=request)
+    assert result.category == "Jeans"
+    # Evidence should cite the category
+    assert any("[Jeans]" in ev or "Jeans" in ev for ev in result.evidence_sources)
+    # Target sizes should belong to Zara Z1975 (size labels 34..42)
+    valid_labels = {"34", "36", "38", "40", "42"}
+    assert all(s.size_label in valid_labels for s in result.all_sizes_ranked)
+    assert result.primary_recommendation.size_label in valid_labels

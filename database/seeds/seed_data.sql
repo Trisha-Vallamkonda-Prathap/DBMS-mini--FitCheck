@@ -12,16 +12,16 @@ USE fitcheck;
 -- Member B owns authentication; these records provide FK targets.
 -- ============================================================
 INSERT IGNORE INTO `USER` (user_id, name, email, password_hash, role) VALUES
-(1,  'Admin User',     'admin@fitcheck.local',     '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'ADMIN'),
-(2,  'Priya Sharma',   'priya@example.com',        '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(3,  'Ananya Rao',     'ananya@example.com',       '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(4,  'Meera Patel',    'meera@example.com',        '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(5,  'Kavya Iyer',     'kavya@example.com',        '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(6,  'Riya Nair',      'riya@example.com',         '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(7,  'Sneha Gupta',    'sneha@example.com',        '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(8,  'Divya Menon',    'divya@example.com',        '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(9,  'Tara Desai',     'tara@example.com',         '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER'),
-(10, 'Lakshmi Reddy',  'lakshmi@example.com',      '$2b$12$LJ3m6gG8CwLSm5y5BeKV0eOlK.mfVi4Tz8kNfJfKfSsCq0wRy0FnG', 'USER');
+(1,  'Admin User',     'admin@fitcheck.local',     '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'ADMIN'),
+(2,  'Priya Sharma',   'priya@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(3,  'Ananya Rao',     'ananya@example.com',       '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(4,  'Meera Patel',    'meera@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(5,  'Kavya Iyer',     'kavya@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(6,  'Riya Nair',      'riya@example.com',         '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(7,  'Sneha Gupta',    'sneha@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(8,  'Divya Menon',    'divya@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(9,  'Tara Desai',     'tara@example.com',         '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
+(10, 'Lakshmi Reddy',  'lakshmi@example.com',      '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER');
 
 -- ============================================================
 -- 2. BODY_PROFILE (8 profiles for users 2-9)

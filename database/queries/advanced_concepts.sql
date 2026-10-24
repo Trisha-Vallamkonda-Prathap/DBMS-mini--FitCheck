@@ -89,8 +89,8 @@ DELIMITER ;
 
 -- ------------------------------------------------------------
 -- 4. TRIGGER: trg_before_body_profile_update
--- Ensures measurement consistency and sets updated_at before updates.
--- Rejects contradictory measurement entries where hip is smaller than waist.
+-- Ensures measurement integrity before updates on BODY_PROFILE.
+-- Validates that provided dimensions are strictly positive values.
 -- ------------------------------------------------------------
 DROP TRIGGER IF EXISTS trg_before_body_profile_update;
 
@@ -99,11 +99,13 @@ CREATE TRIGGER trg_before_body_profile_update
 BEFORE UPDATE ON BODY_PROFILE
 FOR EACH ROW
 BEGIN
-    IF NEW.waist IS NOT NULL AND NEW.hip IS NOT NULL THEN
-        IF NEW.hip < NEW.waist THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Integrity Error: Hip measurement cannot be smaller than waist measurement.';
-        END IF;
+    IF (NEW.waist IS NOT NULL AND NEW.waist <= 0) OR
+       (NEW.hip IS NOT NULL AND NEW.hip <= 0) OR
+       (NEW.height IS NOT NULL AND NEW.height <= 0) OR
+       (NEW.thigh IS NOT NULL AND NEW.thigh <= 0) OR
+       (NEW.inseam IS NOT NULL AND NEW.inseam <= 0) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Integrity Error: Body profile measurements must be strictly positive numbers.';
     END IF;
 END //
 DELIMITER ;

@@ -23,19 +23,20 @@ from backend.app.schemas import (
 # Unit conversion constant
 INCHES_TO_CM = 2.54
 
-# Dimension weights (must sum to 1.0 when all present)
+# Dimension weights (normalized dynamically across available dimensions)
 DEFAULT_WEIGHTS = {
-    "waist": 0.45,
-    "hip": 0.35,
+    "waist": 0.40,
+    "hip": 0.32,
     "thigh": 0.12,
-    "inseam": 0.08,
+    "inseam": 0.10,
+    "rise": 0.06,
 }
 
 # Ease allowances (cm) added to anatomical body measurements
 EASE_ALLOWANCES = {
-    "TIGHT": {"waist": 0.0, "hip": 0.5, "thigh": 0.0},
-    "REGULAR": {"waist": 1.5, "hip": 2.5, "thigh": 1.5},
-    "RELAXED": {"waist": 3.0, "hip": 4.5, "thigh": 3.0},
+    "TIGHT": {"waist": 0.0, "hip": 0.5, "thigh": 0.0, "rise": 0.0},
+    "REGULAR": {"waist": 1.5, "hip": 2.5, "thigh": 1.5, "rise": 1.0},
+    "RELAXED": {"waist": 3.0, "hip": 4.5, "thigh": 3.0, "rise": 2.0},
 }
 
 
@@ -50,12 +51,15 @@ def get_user_reference_dimensions(
     db: Session,
     user_id: Optional[int],
     manual_override: Optional[Dict[str, Any]] = None,
+    target_category: Optional[str] = None,
 ) -> Tuple[Dict[str, float], List[str], str]:
     """
     Synthesizes reference dimensions from:
     1. Direct manual override inputs (if provided)
     2. User's BodyProfile (anatomical ground truth + preferred fit ease)
-    3. User's successful purchase history (KEPT & GOOD fit satisfaction)
+    3. User's purchase history with category compatibility & differentiated evidence weights:
+       - KEPT + GOOD: Weight 1.0 (strong positive evidence)
+       - KEPT + AVERAGE: Weight 0.5 (secondary positive evidence)
     
     Returns:
         (reference_dimensions_cm, evidence_sources, confidence_level)
@@ -65,7 +69,7 @@ def get_user_reference_dimensions(
     
     # 1. Manual override inputs
     if manual_override:
-        for dim in ("waist", "hip", "thigh", "inseam"):
+        for dim in ("waist", "hip", "thigh", "inseam", "rise"):
             val = manual_override.get(dim)
             if val is not None and float(val) > 0:
                 ref_dims[dim] = float(val)
@@ -88,49 +92,78 @@ def get_user_reference_dimensions(
     if profile:
         pref_fit = profile.preferred_fit or "REGULAR"
         ease = EASE_ALLOWANCES.get(pref_fit, EASE_ALLOWANCES["REGULAR"])
-        for dim in ("waist", "hip", "thigh", "inseam"):
-            val = getattr(profile, dim)
+        for dim in ("waist", "hip", "thigh", "inseam", "rise"):
+            val = getattr(profile, dim, None)
             if val is not None and float(val) > 0:
                 profile_dims[dim] = round(float(val) + ease.get(dim, 0.0), 2)
                 has_profile = True
         if has_profile:
             evidence.append(
-                f"Body Profile (Waist: {profile.waist}cm, Hip: {profile.hip}cm, Ease: {pref_fit})"
+                f"Body Profile (Waist: {profile.waist}cm, Hip: {profile.hip}cm, Fit: {pref_fit})"
             )
 
-    # 3. Check Successful Purchase History (KEPT & GOOD)
-    successful_purchases = (
+    # 3. Check Kept Purchase History with category compatibility & differentiated satisfaction weighting
+    purchases_query = (
         db.query(Purchase)
+        .join(GarmentSize, Purchase.garment_size_id == GarmentSize.garment_size_id)
+        .join(Garment, GarmentSize.garment_id == Garment.garment_id)
         .filter(
             Purchase.user_id == user_id,
             Purchase.outcome == "KEPT",
-            Purchase.fit_satisfaction == "GOOD",
+            Purchase.fit_satisfaction.in_(["GOOD", "AVERAGE"]),
         )
-        .all()
     )
+    if target_category:
+        category_purchases = purchases_query.filter(Garment.garment_category == target_category).all()
+        kept_purchases = category_purchases if category_purchases else purchases_query.all()
+    else:
+        kept_purchases = purchases_query.all()
 
-    purchase_dims: Dict[str, List[float]] = {"waist": [], "hip": [], "thigh": [], "inseam": []}
-    for p in successful_purchases:
+    # Accumulate weighted dimension totals: {dim: (weighted_sum, total_weights)}
+    purchase_weighted_dims: Dict[str, Tuple[float, float]] = {
+        "waist": (0.0, 0.0),
+        "hip": (0.0, 0.0),
+        "thigh": (0.0, 0.0),
+        "inseam": (0.0, 0.0),
+        "rise": (0.0, 0.0),
+    }
+
+    good_count = 0
+    average_count = 0
+
+    for p in kept_purchases:
         garment_size = p.garment_size
         if not garment_size:
             continue
         garment = garment_size.garment
         brand_name = garment.brand.brand_name if garment and garment.brand else "Unknown"
-        evidence.append(
-            f"Kept purchase: {brand_name} {garment.garment_name} (Size {garment_size.size_label})"
-        )
+
+        category_tag = f"[{garment.garment_category}] " if (garment and garment.garment_category) else ""
+        if p.fit_satisfaction == "GOOD":
+            p_weight = 1.0
+            good_count += 1
+            evidence.append(
+                f"Kept purchase (Strong fit): {category_tag}{brand_name} {garment.garment_name} (Size {garment_size.size_label})"
+            )
+        else:
+            p_weight = 0.5
+            average_count += 1
+            evidence.append(
+                f"Kept purchase (Average fit, lower weight): {category_tag}{brand_name} {garment.garment_name} (Size {garment_size.size_label})"
+            )
+
         for m in garment_size.measurements:
             m_type = m.measurement_type.lower()
-            if m_type in purchase_dims:
+            if m_type in purchase_weighted_dims:
                 val_cm = normalize_to_cm(float(m.measurement_value), m.unit)
-                purchase_dims[m_type].append(val_cm)
+                cur_sum, cur_wt = purchase_weighted_dims[m_type]
+                purchase_weighted_dims[m_type] = (cur_sum + p_weight * val_cm, cur_wt + p_weight)
 
-    # Calculate average dimensions from kept purchases
-    avg_purchase_dims = {
-        dim: round(sum(vals) / len(vals), 2)
-        for dim, vals in purchase_dims.items()
-        if vals
-    }
+    # Calculate weighted average dimensions from kept purchases
+    avg_purchase_dims = {}
+    for dim, (w_sum, total_wt) in purchase_weighted_dims.items():
+        if total_wt > 0:
+            avg_purchase_dims[dim] = round(w_sum / total_wt, 2)
 
     # Synthesize reference dimensions
     if avg_purchase_dims and has_profile:
@@ -144,10 +177,10 @@ def get_user_reference_dimensions(
                 ref_dims[dim] = p_val
             elif b_val:
                 ref_dims[dim] = b_val
-        confidence = "HIGH"
+        confidence = "HIGH" if good_count >= 1 else "MEDIUM"
     elif avg_purchase_dims:
         ref_dims = avg_purchase_dims
-        confidence = "HIGH" if len(successful_purchases) >= 2 else "MEDIUM"
+        confidence = "HIGH" if good_count >= 2 else "MEDIUM"
     elif has_profile:
         ref_dims = profile_dims
         confidence = "MEDIUM"
@@ -200,6 +233,7 @@ def compute_size_recommendation(
         db=db,
         user_id=request.user_id,
         manual_override=manual_inputs if manual_inputs else None,
+        target_category=target_garment.garment_category,
     )
 
     caveats: List[str] = []
@@ -207,6 +241,25 @@ def compute_size_recommendation(
         caveats.append(f"Garment fit is {target_garment.fit_type}: cut is tailored closer to the body.")
     elif target_garment.fit_type in ("WIDE_LEG", "RELAXED"):
         caveats.append(f"Garment fit is {target_garment.fit_type}: silhouette has built-in generous ease.")
+
+    # Negative fit evidence caveat: alert if user previously returned or had poor fit with this brand
+    if request.user_id:
+        neg_purchases = (
+            db.query(Purchase)
+            .join(GarmentSize, Purchase.garment_size_id == GarmentSize.garment_size_id)
+            .join(Garment, GarmentSize.garment_id == Garment.garment_id)
+            .filter(
+                Purchase.user_id == request.user_id,
+                Garment.brand_id == target_garment.brand_id,
+                (Purchase.outcome == "RETURNED") | (Purchase.fit_satisfaction == "POOR"),
+            )
+            .all()
+        )
+        if neg_purchases:
+            caveats.append(
+                f"Notice: You have {len(neg_purchases)} prior return(s) or poor-fit experience(s) with {brand_name}. "
+                "Examine the dimensional deltas closely."
+            )
 
     # Cold start: if insufficient reference data
     if confidence == "INSUFFICIENT_DATA" or not ref_dims:
@@ -231,6 +284,7 @@ def compute_size_recommendation(
             category=target_garment.garment_category,
             fit_type=target_garment.fit_type,
             primary_recommendation=all_ranked[0],
+            top_recommendations=all_ranked[:3],
             all_sizes_ranked=all_ranked,
             evidence_sources=["Cold-start fallback: median size selected"],
             confidence="INSUFFICIENT_DATA",
@@ -283,12 +337,21 @@ def compute_size_recommendation(
                 elif dim == "hip":
                     if diff < -2.0:
                         notes.append(f"Hip is {abs(diff):.1f}cm snugger than reference")
+                    elif diff > 2.0:
+                        notes.append(f"Hip is {diff:.1f}cm roomier than reference")
+                elif dim == "inseam" and abs(diff) > 4.0:
+                    notes.append(f"Inseam differs by {abs(diff):.1f}cm from reference")
+                elif dim == "thigh" and diff < -1.5:
+                    notes.append(f"Thigh is {abs(diff):.1f}cm narrower than reference")
+                elif dim == "rise" and abs(diff) > 2.0:
+                    notes.append(f"Rise differs by {abs(diff):.1f}cm from reference")
 
         # Normalize composite delta by active weights
         if applied_weight_sum > 0:
             effective_delta = weighted_delta_sum / applied_weight_sum
         else:
             effective_delta = 99.0
+            notes.append("No common dimensional measurements available to compare.")
 
         # Exponential decay scoring function: score = 100 * exp(-delta / 4.0)
         score = round(max(0.0, min(100.0, 100.0 * math.exp(-effective_delta / 4.0))), 1)
@@ -339,6 +402,7 @@ def compute_size_recommendation(
         category=target_garment.garment_category,
         fit_type=target_garment.fit_type,
         primary_recommendation=primary,
+        top_recommendations=scored_sizes[:3],
         all_sizes_ranked=scored_sizes,
         evidence_sources=evidence,
         confidence=confidence,
