@@ -1,0 +1,27 @@
+# Core API Framework
+fastapi==0.110.0
+uvicorn[standard]==0.28.0
+pydantic==2.6.4
+pydantic-settings==2.2.1
+python-multipart==0.0.9
+
+# Relational Database (MySQL & SQLAlchemy)
+sqlalchemy==2.0.28
+pymysql==1.1.0
+cryptography==42.0.5
+
+# Vector Database (Redis Stack & Embeddings)
+redis==5.0.3
+numpy==1.26.4
+sentence-transformers==2.5.1
+
+# Security & Authentication
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-jose[cryptography]==3.3.0
+
+# Testing & Utilities
+pytest==8.1.1
+pytest-asyncio==0.23.6
+httpx==0.27.0
+python-dotenv==1.0.1

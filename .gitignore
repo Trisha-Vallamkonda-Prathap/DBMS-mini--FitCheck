@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Node & Frontend dependencies
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environment files and credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDE and Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary scratch and cache directories
+scratch/
+tmp/
+*.log
