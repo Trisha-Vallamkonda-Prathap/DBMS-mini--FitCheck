@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ------------------------------------------------------------
@@ -217,3 +217,106 @@ class HealthStatus(BaseModel):
     redis_connected: bool
     timestamp: datetime
 
+
+# ------------------------------------------------------------
+# Fit Review & Semantic Search Schemas (Member B)
+# ------------------------------------------------------------
+OVERALL_FIT_PATTERN = "^(TOO_SMALL|SLIGHTLY_SMALL|TRUE_TO_SIZE|SLIGHTLY_LARGE|TOO_LARGE)$"
+WAIST_FIT_PATTERN = "^(TIGHT|GOOD|LOOSE)$"
+HIP_FIT_PATTERN = "^(TIGHT|GOOD|LOOSE)$"
+THIGH_FIT_PATTERN = "^(TIGHT|GOOD|LOOSE)$"
+LENGTH_FIT_PATTERN = "^(SHORT|GOOD|LONG)$"
+
+
+class FitReviewBase(BaseModel):
+    garment_size_id: int
+    overall_fit: str = Field(..., pattern=OVERALL_FIT_PATTERN)
+    waist_fit: Optional[str] = Field(None, pattern=WAIST_FIT_PATTERN)
+    hip_fit: Optional[str] = Field(None, pattern=HIP_FIT_PATTERN)
+    thigh_fit: Optional[str] = Field(None, pattern=THIGH_FIT_PATTERN)
+    length_fit: Optional[str] = Field(None, pattern=LENGTH_FIT_PATTERN)
+    review_text: str = Field(...)
+
+    @field_validator("review_text")
+    @classmethod
+    def validate_non_whitespace(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Review text cannot be empty or whitespace only.")
+        return v.strip()
+
+
+class FitReviewCreate(FitReviewBase):
+    pass
+
+
+class FitReviewUpdate(BaseModel):
+    overall_fit: Optional[str] = Field(None, pattern=OVERALL_FIT_PATTERN)
+    waist_fit: Optional[str] = Field(None, pattern=WAIST_FIT_PATTERN)
+    hip_fit: Optional[str] = Field(None, pattern=HIP_FIT_PATTERN)
+    thigh_fit: Optional[str] = Field(None, pattern=THIGH_FIT_PATTERN)
+    length_fit: Optional[str] = Field(None, pattern=LENGTH_FIT_PATTERN)
+    review_text: Optional[str] = None
+
+    @field_validator("review_text")
+    @classmethod
+    def validate_non_whitespace(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.strip():
+            raise ValueError("Review text cannot be empty or whitespace only.")
+        return v.strip() if v is not None else None
+
+
+class FitReviewOut(FitReviewBase):
+    review_id: int
+    user_id: int
+    created_at: datetime
+    garment_name: Optional[str] = None
+    brand_name: Optional[str] = None
+    size_label: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ReviewSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    limit: Optional[int] = Field(5, ge=1, le=50)
+    overall_fit: Optional[str] = Field(None, pattern=OVERALL_FIT_PATTERN)
+
+    @field_validator("query")
+    @classmethod
+    def validate_query_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Query string cannot be empty.")
+        return v.strip()
+
+
+class ReviewSearchResult(BaseModel):
+    review_id: int
+    user_id: int
+    garment_size_id: int
+    size_label: str
+    garment_name: str
+    brand_name: str
+    overall_fit: str
+    waist_fit: Optional[str] = None
+    hip_fit: Optional[str] = None
+    thigh_fit: Optional[str] = None
+    length_fit: Optional[str] = None
+    review_text: str
+    similarity_score: float
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReviewAuditOut(BaseModel):
+    audit_id: int
+    review_id: int
+    action: str
+    user_id: Optional[int] = None
+    changed_at: datetime
+    details: Optional[str] = None
+
+    class Config:
+        from_attributes = True

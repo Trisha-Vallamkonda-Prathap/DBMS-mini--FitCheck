@@ -118,3 +118,77 @@ DELIMITER ;
 -- INSERT INTO PURCHASE (user_id, garment_size_id, outcome, fit_satisfaction, fit_preference)
 -- VALUES (1, 5, 'KEPT', 'GOOD', 'REGULAR');
 -- COMMIT;
+
+
+-- ============================================================
+-- 6. AUDIT TABLE & TRIGGERS (Member B Contribution)
+-- Demonstrates Rubric Item 8: Meaningful Database Trigger
+-- Tracks lifecycle changes (INSERT, UPDATE, DELETE) on FIT_REVIEW
+-- for data lineage, review moderation, and vector index sync auditing.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS REVIEW_AUDIT (
+    audit_id INT NOT NULL AUTO_INCREMENT,
+    review_id INT NOT NULL,
+    action VARCHAR(10) NOT NULL,
+    user_id INT NULL,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    details TEXT NULL,
+
+    CONSTRAINT pk_review_audit PRIMARY KEY (audit_id),
+    INDEX idx_audit_review (review_id)
+) ENGINE = InnoDB;
+
+-- Trigger: After Review Insert
+DROP TRIGGER IF EXISTS trg_after_review_insert;
+
+DELIMITER //
+CREATE TRIGGER trg_after_review_insert
+AFTER INSERT ON FIT_REVIEW
+FOR EACH ROW
+BEGIN
+    INSERT INTO REVIEW_AUDIT (review_id, action, user_id, details)
+    VALUES (
+        NEW.review_id,
+        'INSERT',
+        NEW.user_id,
+        CONCAT('Created review for size ', NEW.garment_size_id, '; overall_fit: ', NEW.overall_fit)
+    );
+END //
+DELIMITER ;
+
+-- Trigger: After Review Update
+DROP TRIGGER IF EXISTS trg_after_review_update;
+
+DELIMITER //
+CREATE TRIGGER trg_after_review_update
+AFTER UPDATE ON FIT_REVIEW
+FOR EACH ROW
+BEGIN
+    INSERT INTO REVIEW_AUDIT (review_id, action, user_id, details)
+    VALUES (
+        NEW.review_id,
+        'UPDATE',
+        NEW.user_id,
+        CONCAT('Updated review; overall_fit changed from ', OLD.overall_fit, ' to ', NEW.overall_fit)
+    );
+END //
+DELIMITER ;
+
+-- Trigger: After Review Delete
+DROP TRIGGER IF EXISTS trg_after_review_delete;
+
+DELIMITER //
+CREATE TRIGGER trg_after_review_delete
+AFTER DELETE ON FIT_REVIEW
+FOR EACH ROW
+BEGIN
+    INSERT INTO REVIEW_AUDIT (review_id, action, user_id, details)
+    VALUES (
+        OLD.review_id,
+        'DELETE',
+        OLD.user_id,
+        CONCAT('Deleted review by user ', OLD.user_id, ' for size ', OLD.garment_size_id)
+    );
+END //
+DELIMITER ;

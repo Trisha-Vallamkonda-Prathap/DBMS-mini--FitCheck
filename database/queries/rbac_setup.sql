@@ -33,3 +33,24 @@ FLUSH PRIVILEGES;
 
 -- Verification Query:
 -- SHOW GRANTS FOR 'fitcheck_user'@'localhost' USING 'fitcheck_app_role';
+
+
+-- ============================================================
+-- 7. REPRODUCIBLE LEAST-PRIVILEGE DEMONSTRATION & VERIFICATION
+-- ============================================================
+-- Step A: Verify Assigned Grants
+-- SHOW GRANTS FOR 'fitcheck_user'@'localhost' USING 'fitcheck_app_role';
+-- SHOW GRANTS FOR 'fitcheck_admin'@'localhost' USING 'fitcheck_admin_role';
+
+-- Step B: Test Permitted Operations for 'fitcheck_user' (Expected: SUCCESS)
+-- SELECT COUNT(*) FROM fitcheck.FIT_REVIEW;
+-- INSERT INTO fitcheck.FIT_REVIEW (user_id, garment_size_id, overall_fit, review_text)
+-- VALUES (2, 3, 'TRUE_TO_SIZE', 'RBAC test review text');
+
+-- Step C: Test Denied Operation for 'fitcheck_user' (Expected: ERROR 1142 (42000): DROP command denied)
+-- DROP TABLE fitcheck.FIT_REVIEW;
+-- ALTER TABLE fitcheck.GARMENT ADD COLUMN test_col VARCHAR(10);
+
+-- Step D: Test Permitted DDL for 'fitcheck_admin' (Expected: SUCCESS)
+-- CREATE TABLE fitcheck.audit_archive_temp (id INT);
+-- DROP TABLE fitcheck.audit_archive_temp;

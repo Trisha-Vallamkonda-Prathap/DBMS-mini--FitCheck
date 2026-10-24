@@ -44,3 +44,22 @@ mysql -u root -p < database/fitcheck_setup.sql
 # 2. Populate Member A structured dataset
 mysql -u fitcheck_user -p fitcheck < database/seeds/seed_data.sql
 ```
+
+
+---
+
+## 6. Member B Synthetic Review Data & Vector Ingestion
+
+- **File:** `database/seeds/review_seeds.sql`
+- **Volume:** 40 synthetic `FIT_REVIEW` rows
+- **Disclaimer:** **DATA IS SYNTHETIC**. Generated for evaluating semantic vector retrieval on apparel fit issues (waist gap, tight thighs, hem dragging).
+- **Referential Integrity:** Strictly uses foreign keys from `ID_MANIFEST.md` (`user_id` 1..10, `garment_size_id` 1..70).
+- **Import Command:**
+  ```bash
+  mysql -u fitcheck_user -p fitcheck < database/seeds/review_seeds.sql
+  ```
+- **Vector Ingestion into Redis Stack:**
+  After loading MySQL reviews, populate the Redis Stack vector index:
+  ```bash
+  python -m backend.app.scripts.seed_vectors
+  ```
