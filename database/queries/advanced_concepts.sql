@@ -206,27 +206,3 @@ CREATE TABLE IF NOT EXISTS REVIEW_AUDIT (
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     details TEXT
 );
-
-DROP TRIGGER IF EXISTS trg_fit_review_delete_audit;
-
-DELIMITER $$
-
-CREATE TRIGGER trg_fit_review_delete_audit
-AFTER DELETE ON FIT_REVIEW
-FOR EACH ROW
-BEGIN
-    INSERT INTO REVIEW_AUDIT (
-        review_id,
-        action,
-        user_id,
-        details
-    )
-    VALUES (
-        OLD.review_id,
-        'DELETE',
-        OLD.user_id,
-        CONCAT('Deleted review: ', OLD.review_text)
-    );
-END$$
-
-DELIMITER ;

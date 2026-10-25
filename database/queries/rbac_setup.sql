@@ -17,8 +17,8 @@ GRANT ALL PRIVILEGES ON fitcheck.* TO 'fitcheck_admin_role';
 
 -- 4. Create Database Users (Placeholders for local deployment)
 -- Note: Replace passwords with environment-provided secrets in production
-CREATE USER IF NOT EXISTS 'fitcheck_user'@'localhost' IDENTIFIED BY 'fitcheck_secure_app_pass';
-CREATE USER IF NOT EXISTS 'fitcheck_admin'@'localhost' IDENTIFIED BY 'fitcheck_secure_admin_pass';
+CREATE USER IF NOT EXISTS 'fitcheck_user'@'localhost' IDENTIFIED BY 'REPLACE_WITH_SECURE_APP_PASSWORD';
+CREATE USER IF NOT EXISTS 'fitcheck_admin'@'localhost' IDENTIFIED BY 'REPLACE_WITH_SECURE_ADMIN_PASSWORD';
 
 -- 5. Assign Roles to Users
 GRANT 'fitcheck_app_role' TO 'fitcheck_user'@'localhost';
