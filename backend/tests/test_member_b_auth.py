@@ -44,8 +44,7 @@ def test_password_hash_never_returned(client):
     # 1. Login response
     login_res = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@fitcheck.local", "password": "password123"},
-    )
+        json={"email": "priya@example.com", "password": "password123"},    )
     assert "password_hash" not in login_res.text
 
     # 2. /me response
@@ -56,8 +55,7 @@ def test_password_hash_never_returned(client):
     )
     assert me_res.status_code == 200
     assert "password_hash" not in me_res.text
-    assert me_res.json()["email"] == "admin@fitcheck.local"
-
+    assert me_res.json()["email"] == "priya@example.com"
 
 def test_unauthenticated_request_fails(client):
     """Ensures private routes reject unauthenticated requests with HTTP 401."""
