@@ -9,10 +9,10 @@ USE fitcheck;
 -- ============================================================
 -- 1. USERS (10 fictional users + 1 admin)
 -- Password hashes are bcrypt of 'password123' — for dev/demo only.
--- Member B owns authentication; these records provide FK targets.
+-- Member B owns authentication and these records provide FK targets.
 -- ============================================================
 INSERT IGNORE INTO `USER` (user_id, name, email, password_hash, role) VALUES
-(1,  'Admin User',     'admin@fitcheck.local',     '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'ADMIN'),
+(1,  'Admin User',     'admin@fitcheck.com',     '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'ADMIN'),
 (2,  'Priya Sharma',   'priya@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
 (3,  'Ananya Rao',     'ananya@example.com',       '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
 (4,  'Meera Patel',    'meera@example.com',        '$2b$12$zt9TRitBpfMUTz7V33hNhefjKy116LCjrQ.jpamTWRD0FsjQtiSkW', 'USER'),
@@ -228,7 +228,7 @@ INSERT IGNORE INTO GARMENT_MEASUREMENT (garment_size_id, measurement_type, measu
 -- Successful fit evidence: outcome='KEPT' AND fit_satisfaction='GOOD'
 -- ============================================================
 INSERT IGNORE INTO PURCHASE (purchase_id, user_id, garment_size_id, purchase_date, outcome, fit_satisfaction, fit_preference) VALUES
--- Priya (user 2): knows Levis 28 fits well; tried Zara 38 (kept)
+-- Priya (user 2): knows Levis 28 fits well and tried Zara 38 (kept)
 (1,  2, 3,  '2026-03-15', 'KEPT',      'GOOD',    'REGULAR'),   -- Levis 501 sz28
 (2,  2, 8,  '2026-04-20', 'KEPT',      'GOOD',    'REGULAR'),   -- Levis Ribcage sz28
 (3,  2, 18, '2026-05-10', 'KEPT',      'AVERAGE', 'TIGHT'),     -- Zara Z1975 sz38

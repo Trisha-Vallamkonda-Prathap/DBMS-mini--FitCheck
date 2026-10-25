@@ -284,7 +284,6 @@ CREATE TABLE FIT_REVIEW (
         CHECK (thigh_fit IS NULL OR thigh_fit IN ('TIGHT', 'GOOD', 'LOOSE')),
     CONSTRAINT chk_review_length_fit
         CHECK (length_fit IS NULL OR length_fit IN ('SHORT', 'GOOD', 'LONG')),
-
     CONSTRAINT chk_review_text
         CHECK (CHAR_LENGTH(TRIM(review_text)) > 0),
 

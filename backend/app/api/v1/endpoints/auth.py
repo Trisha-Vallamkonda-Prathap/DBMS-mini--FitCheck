@@ -19,7 +19,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
             detail="A user with this email address already exists.",
         )
     
-    role = user_in.role if user_in.role in ("USER", "ADMIN") else "USER"
+    role = "USER"
     hashed_pwd = get_password_hash(user_in.password)
 
     new_user = User(

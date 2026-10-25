@@ -357,38 +357,13 @@ def search_reviews(
         return results
 
     # Graceful fallback: If Redis Stack is offline or empty, search MySQL review_text
-    query_pattern = f"%{search_req.query.strip()}%"
-    filter_q = db.query(FitReview, GarmentSize, Garment, Brand)\
-        .join(GarmentSize, FitReview.garment_size_id == GarmentSize.garment_size_id)\
-        .join(Garment, GarmentSize.garment_id == Garment.garment_id)\
-        .join(Brand, Garment.brand_id == Brand.brand_id)\
-        .filter(FitReview.review_text.ilike(query_pattern))
-
-    if search_req.overall_fit:
-        filter_q = filter_q.filter(FitReview.overall_fit == search_req.overall_fit)
-
-    fallback_rows = filter_q.limit(limit).all()
-    results = []
-    for review, size, garment, brand in fallback_rows:
-        results.append(
-            ReviewSearchResult(
-                review_id=review.review_id,
-                user_id=review.user_id,
-                garment_size_id=review.garment_size_id,
-                size_label=size.size_label,
-                garment_name=garment.garment_name,
-                brand_name=brand.brand_name,
-                overall_fit=review.overall_fit,
-                waist_fit=review.waist_fit,
-                hip_fit=review.hip_fit,
-                thigh_fit=review.thigh_fit,
-                length_fit=review.length_fit,
-                review_text=review.review_text,
-                similarity_score=0.75,  # Relational text match fallback score
-                created_at=review.created_at,
-            )
-        )
-    return results
+    # Redis returned no vector matches or is unavailable.
+    # Do not fabricate semantic similarity using SQL text matching.
+    logger.warning(
+        "Semantic vector search returned no results. "
+        "Redis Stack may be unavailable or the index may contain no relevant vectors."
+    )
+    return []
 
 
 # ------------------------------------------------------------

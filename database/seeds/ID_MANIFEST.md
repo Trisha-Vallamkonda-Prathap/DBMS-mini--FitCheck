@@ -7,7 +7,7 @@ Member B should use these IDs when creating FIT_REVIEW records and vector embedd
 
 | user_id | name            | email                    | role  |
 |---------|-----------------|--------------------------|-------|
-| 1       | Admin User      | admin@fitcheck.local     | ADMIN |
+| 1       | Admin User      | admin@fitcheck.com     | ADMIN |
 | 2       | Priya Sharma    | priya@example.com        | USER  |
 | 3       | Ananya Rao      | ananya@example.com       | USER  |
 | 4       | Meera Patel     | meera@example.com        | USER  |

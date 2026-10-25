@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import MemberBPanel from "./member-b-panel";
 import {
   Sparkles,
   Ruler,
@@ -28,7 +29,9 @@ const DEMO_USERS = [
 
 export default function FitCheckMemberA() {
   // Navigation
-  const [activeTab, setActiveTab] = useState<"recommend" | "profile" | "purchases" | "catalogue">("recommend");
+  const [activeTab, setActiveTab] = useState<
+    "recommend" | "profile" | "purchases" | "catalogue" | "reviews"
+  >("recommend");
   const [selectedUserId, setSelectedUserId] = useState<number>(2);
   const [authToken, setAuthToken] = useState<string | null>(null);
 
@@ -536,6 +539,26 @@ export default function FitCheckMemberA() {
           <Layers size={18} />
           Garment Catalogue &amp; Measurements
         </button>
+        <button
+          onClick={() => setActiveTab("reviews")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 20px",
+            background:
+              activeTab === "reviews" ? "var(--accent-gradient)" : "transparent",
+            color:
+              activeTab === "reviews" ? "#fff" : "var(--text-secondary)",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
+            cursor: "pointer",
+            fontWeight: 600,
+            fontSize: "0.95rem",
+          }}
+        >
+          Fit Reviews & Semantic Search
+        </button>
       </nav>
 
       {/* ============================================================== */}
@@ -607,8 +630,7 @@ export default function FitCheckMemberA() {
               <div style={{ background: "rgba(0,0,0,0.25)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{garmentDetail.garment_name}</span>
-                  <span className="badge badge-info">{garmentDetail.fit_type}</span>
-                </div>
+                  <span className="badge badge-info">Integrated FitCheck Demo</span>                </div>
                 <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "12px" }}>
                   {garmentDetail.description || "No description available."}
                 </p>
@@ -1279,6 +1301,7 @@ export default function FitCheckMemberA() {
           </div>
         </section>
       )}
+      {activeTab === "reviews" && <MemberBPanel />}
     </main>
   );
 }

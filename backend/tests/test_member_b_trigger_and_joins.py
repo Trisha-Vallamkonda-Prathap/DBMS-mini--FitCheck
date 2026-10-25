@@ -173,6 +173,5 @@ def test_semantic_search_endpoint_returns_joined_metadata(client):
     assert top_hit["brand_name"] == "Levis"
     assert top_hit["garment_name"] == "Levis 501 Original"
     assert top_hit["size_label"] == "28"
-    assert "comfortable" in top_hit["review_text"].lower()
-    assert "similarity_score" in top_hit
+    assert top_hit["review_text"] == "Waistband fits comfortably with no pinching."
     assert 0.0 <= top_hit["similarity_score"] <= 1.0

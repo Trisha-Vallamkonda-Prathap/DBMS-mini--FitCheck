@@ -11,7 +11,6 @@ CREATE ROLE IF NOT EXISTS 'fitcheck_app_role', 'fitcheck_admin_role';
 -- The application connection only requires DML operations and procedure execution.
 -- It is strictly denied DDL privileges (CREATE, DROP, ALTER) to protect schema integrity.
 GRANT SELECT, INSERT, UPDATE, DELETE ON fitcheck.* TO 'fitcheck_app_role';
-GRANT EXECUTE ON fitcheck.* TO 'fitcheck_app_role';
 
 -- 3. Grant Permissions to Admin Role
 GRANT ALL PRIVILEGES ON fitcheck.* TO 'fitcheck_admin_role';
@@ -29,7 +28,6 @@ GRANT 'fitcheck_admin_role' TO 'fitcheck_admin'@'localhost';
 SET DEFAULT ROLE 'fitcheck_app_role' TO 'fitcheck_user'@'localhost';
 SET DEFAULT ROLE 'fitcheck_admin_role' TO 'fitcheck_admin'@'localhost';
 
-FLUSH PRIVILEGES;
 
 -- Verification Query:
 -- SHOW GRANTS FOR 'fitcheck_user'@'localhost' USING 'fitcheck_app_role';
