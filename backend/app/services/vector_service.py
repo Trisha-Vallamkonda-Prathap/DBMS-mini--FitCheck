@@ -143,6 +143,37 @@ def upsert_review_vector(
         return False
 
 
+def get_review_vector(review_id: int, redis_client=None) -> Optional[Dict[str, Any]]:
+    """
+    READ operation (Direct Lookup):
+    Retrieves the stored vector record and metadata for a specific review from Redis.
+    """
+    try:
+        if redis_client is None:
+            if not ping_redis():
+                return None
+            redis_client = get_redis_client()
+
+        key = get_vector_key(review_id)
+        data = redis_client.hgetall(key)
+        if not data:
+            return None
+
+        result: Dict[str, Any] = {}
+        for f_k, f_v in data.items():
+            k_str = f_k.decode("utf-8") if isinstance(f_k, bytes) else str(f_k)
+            if k_str == "review_embedding":
+                result["has_embedding"] = True
+                result["embedding_dim"] = len(np.frombuffer(f_v, dtype=np.float32)) if f_v else 0
+            else:
+                v_str = f_v.decode("utf-8") if isinstance(f_v, bytes) else str(f_v)
+                result[k_str] = v_str
+        return result
+    except Exception as e:
+        logger.warning(f"Failed to get vector for review_id={review_id}: {e}")
+        return None
+
+
 def delete_review_vector(review_id: int, redis_client=None) -> bool:
     """
     DELETE operation:
@@ -163,6 +194,67 @@ def delete_review_vector(review_id: int, redis_client=None) -> bool:
     except Exception as e:
         logger.warning(f"Failed to delete vector for review_id={review_id}: {e}")
         return False
+
+
+def _search_vectors_fallback(
+    query_vector: np.ndarray,
+    k: int = 5,
+    overall_fit_filter: Optional[str] = None,
+    redis_client=None,
+) -> List[Tuple[int, float]]:
+    """
+    Fallback vector similarity search when RediSearch FT commands are not available.
+    Directly scans review_vector hashes in Redis, computes cosine similarity with numpy,
+    and returns top-k matching (review_id, similarity) pairs.
+    """
+    try:
+        if redis_client is None:
+            redis_client = get_redis_client()
+
+        hits: List[Tuple[int, float]] = []
+        for key in redis_client.scan_iter(match=f"{DOC_PREFIX}*", count=100):
+            try:
+                data = redis_client.hgetall(key)
+                if not data:
+                    continue
+
+                decoded: Dict[str, Any] = {}
+                for f_k, f_v in data.items():
+                    k_str = f_k.decode("utf-8") if isinstance(f_k, bytes) else str(f_k)
+                    decoded[k_str] = f_v
+
+                if overall_fit_filter:
+                    fit_val = decoded.get("overall_fit")
+                    if isinstance(fit_val, bytes):
+                        fit_val = fit_val.decode("utf-8")
+                    if fit_val != overall_fit_filter:
+                        continue
+
+                raw_emb = decoded.get("review_embedding")
+                if not raw_emb:
+                    continue
+
+                vec = np.frombuffer(raw_emb, dtype=np.float32)
+                if vec.shape[0] != query_vector.shape[0]:
+                    continue
+
+                sim = float(np.dot(query_vector, vec))
+                sim_clamped = max(0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim))
+
+                r_id_raw = decoded.get("review_id")
+                if isinstance(r_id_raw, bytes):
+                    r_id_raw = r_id_raw.decode("utf-8")
+                r_id = int(r_id_raw)
+                hits.append((r_id, round(sim_clamped, 4)))
+            except Exception as err:
+                logger.debug(f"Error parsing key {key}: {err}")
+                continue
+
+        hits.sort(key=lambda x: x[1], reverse=True)
+        return hits[:k]
+    except Exception as e:
+        logger.warning(f"Error executing fallback vector scan: {e}")
+        return []
 
 
 def search_review_vectors(
@@ -187,36 +279,49 @@ def search_review_vectors(
                 return []
             redis_client = get_redis_client()
 
-        ensure_vector_index(redis_client)
-
-        from redis.commands.search.query import Query
-
         query_vector = compute_embedding(query_text)
-        filter_expr = f"@overall_fit:{{{overall_fit_filter}}}" if overall_fit_filter else "*"
-        query_str = f"({filter_expr})=>[KNN {k} @review_embedding $vec AS vector_score]"
 
-        q = (
-            Query(query_str)
-            .sort_by("vector_score")
-            .return_fields("review_id", "vector_score")
-            .paging(0, k)
-            .dialect(2)
+        # Attempt RediSearch FT.SEARCH index query first
+        try:
+            ensure_vector_index(redis_client)
+            from redis.commands.search.query import Query
+
+            filter_expr = f"@overall_fit:{{{overall_fit_filter}}}" if overall_fit_filter else "*"
+            query_str = f"({filter_expr})=>[KNN {k} @review_embedding $vec AS vector_score]"
+
+            q = (
+                Query(query_str)
+                .sort_by("vector_score")
+                .return_fields("review_id", "vector_score")
+                .paging(0, k)
+                .dialect(2)
+            )
+
+            results = redis_client.ft(INDEX_NAME).search(q, query_params={"vec": query_vector.tobytes()})
+
+            hits: List[Tuple[int, float]] = []
+            for doc in results.docs:
+                try:
+                    r_id = int(getattr(doc, "review_id"))
+                    distance = float(getattr(doc, "vector_score"))
+                    # Convert cosine distance to similarity score in [0, 1]
+                    similarity = max(0.0, min(1.0, 1.0 - distance))
+                    hits.append((r_id, round(similarity, 4)))
+                except (ValueError, AttributeError) as parse_err:
+                    logger.warning(f"Error parsing search result document: {parse_err}")
+
+            if hits:
+                return hits
+        except Exception as ft_err:
+            logger.debug(f"RediSearch FT index search unavailable ({ft_err}); trying vector scan fallback.")
+
+        # Fallback to direct Redis key-vector similarity scan
+        return _search_vectors_fallback(
+            query_vector=query_vector,
+            k=k,
+            overall_fit_filter=overall_fit_filter,
+            redis_client=redis_client,
         )
-
-        results = redis_client.ft(INDEX_NAME).search(q, query_params={"vec": query_vector.tobytes()})
-
-        hits: List[Tuple[int, float]] = []
-        for doc in results.docs:
-            try:
-                r_id = int(getattr(doc, "review_id"))
-                distance = float(getattr(doc, "vector_score"))
-                # Convert cosine distance to similarity score in [0, 1]
-                similarity = max(0.0, min(1.0, 1.0 - distance))
-                hits.append((r_id, round(similarity, 4)))
-            except (ValueError, AttributeError) as parse_err:
-                logger.warning(f"Error parsing search result document: {parse_err}")
-
-        return hits
     except Exception as e:
         logger.warning(f"Error executing Redis vector search: {e}")
         return []

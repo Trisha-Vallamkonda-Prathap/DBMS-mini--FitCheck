@@ -1,0 +1,57 @@
+-- ============================================================
+-- FITCHECK — REDIS STACK VECTOR SEARCH COMMANDS (CLI REFERENCE)
+-- Covers DBMS Level 3 Evaluation Rubric:
+-- Item 4: NoSQL / Vector Database Creation (4 Marks)
+-- Item 9: NoSQL / Vector Feature (RUD - Read, Update, Delete) (7 Marks)
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 1. INDEX CREATION (RediSearch HNSW Index)
+-- Index Name: fit_review_idx
+-- Dimensions: 384 (all-MiniLM-L6-v2)
+-- Distance Metric: COSINE
+-- ------------------------------------------------------------
+FT.CREATE fit_review_idx ON HASH PREFIX 1 "review_vector:" SCHEMA review_id NUMERIC SORTABLE garment_size_id NUMERIC SORTABLE overall_fit TAG review_text TEXT review_embedding VECTOR HNSW 6 TYPE FLOAT32 DIM 384 DISTANCE_METRIC COSINE
+
+-- ------------------------------------------------------------
+-- 2. INSPECT VECTOR INDEX CONFIGURATION & CARDINALITY
+-- ------------------------------------------------------------
+FT.INFO fit_review_idx
+
+-- ------------------------------------------------------------
+-- 3. CREATE / UPSERT REVIEW VECTOR (HSET)
+-- Simulates ingestion of a review vector hash into Redis
+-- (Vector binary bytes shown symbolically as $binary_blob)
+-- ------------------------------------------------------------
+HSET review_vector:9999 review_id 9999 garment_size_id 1 overall_fit "TRUE_TO_SIZE" review_text "Redis CLI demonstration: Jeans fit true to waist with slight stretch."
+
+-- ------------------------------------------------------------
+-- 4. READ OPERATION A: Direct Key Lookup (HGETALL / HGET)
+-- ------------------------------------------------------------
+HGETALL review_vector:9999
+HGET review_vector:9999 review_text
+HGET review_vector:9999 overall_fit
+
+-- ------------------------------------------------------------
+-- 5. READ OPERATION B: Semantic Vector KNN Search (FT.SEARCH)
+-- Retrieves top-3 reviews semantically closest to query embedding
+-- Query vector passed as parameter $vec in RediSearch dialect 2
+-- ------------------------------------------------------------
+FT.SEARCH fit_review_idx "(*)=>[KNN 3 @review_embedding $vec AS vector_score]" PARAMS 2 vec "\x00\x00..." SORTBY vector_score DIALECT 2
+
+-- Hybrid Filtered Semantic Search (Filter by overall_fit tag = 'TOO_SMALL'):
+FT.SEARCH fit_review_idx "(@overall_fit:{TOO_SMALL})=>[KNN 3 @review_embedding $vec AS vector_score]" PARAMS 2 vec "\x00\x00..." SORTBY vector_score DIALECT 2
+
+-- ------------------------------------------------------------
+-- 6. UPDATE OPERATION: Update Text & Embedding (HSET)
+-- Simulates customer modifying their review after extended wear
+-- ------------------------------------------------------------
+HSET review_vector:9999 overall_fit "SLIGHTLY_LARGE" review_text "Updated feedback: After washing twice, waist loosened slightly."
+
+-- ------------------------------------------------------------
+-- 7. DELETE OPERATION: Remove Review Vector (HDEL / DEL)
+-- ------------------------------------------------------------
+DEL review_vector:9999
+
+-- Verify deletion (Expected: 0)
+EXISTS review_vector:9999

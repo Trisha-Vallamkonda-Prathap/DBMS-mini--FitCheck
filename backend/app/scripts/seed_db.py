@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 from sqlalchemy import text
-from backend.app.core.database import engine, SessionLocal
+from backend.app.core.database import engine, SessionLocal, Base
 from backend.app.models import (
     User,
     BodyProfile,
@@ -24,6 +24,9 @@ def seed_database():
     if not seed_sql_path.exists():
         print(f"Error: Seed file not found at {seed_sql_path}")
         sys.exit(1)
+
+    print("Ensuring relational schema tables exist via SQLAlchemy models...")
+    Base.metadata.create_all(bind=engine)
 
     seed_files = [seed_sql_path]
     if review_seeds_path.exists():

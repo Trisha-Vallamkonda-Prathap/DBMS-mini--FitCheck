@@ -12,8 +12,16 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
+    return `http://${host}:8000/api/v1`;
+  }
+  return "http://localhost:8000/api/v1";
+};
+const API_BASE = getApiBaseUrl();
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -34,7 +42,7 @@ const labelStyle: React.CSSProperties = {
 
 const buttonStyle: React.CSSProperties = {
   padding: "10px 18px",
-  background: "var(--accent-gradient)",
+  background: "var(--accent-plum)",
   color: "#fff",
   border: "none",
   borderRadius: "var(--radius-sm)",
@@ -42,11 +50,21 @@ const buttonStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export default function MemberBPanel() {
+interface MemberBPanelProps {
+  token?: string | null;
+  currentUser?: any;
+  onLogout?: () => void;
+}
+
+export default function MemberBPanel({
+  token: externalToken,
+  currentUser: externalUser,
+  onLogout,
+}: MemberBPanelProps = {}) {
   const [email, setEmail] = useState("priya@example.com");
   const [password, setPassword] = useState("password123");
-  const [token, setToken] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [token, setToken] = useState<string | null>(externalToken || null);
+  const [currentUser, setCurrentUser] = useState<any>(externalUser || null);
   const [authStatus, setAuthStatus] = useState("");
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [registerName, setRegisterName] = useState("");
@@ -75,13 +93,24 @@ export default function MemberBPanel() {
   const [auditStatus, setAuditStatus] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("fitcheck_member_b_token");
-    if (saved) {
-      setToken(saved);
-      fetchMe(saved);
-      fetchMyReviews(saved);
+    const activeTok =
+      externalToken ||
+      localStorage.getItem("fitcheck_member_b_token") ||
+      localStorage.getItem("fitcheck_token");
+    if (activeTok) {
+      setToken(activeTok);
+      if (externalUser) {
+        setCurrentUser(externalUser);
+      } else {
+        fetchMe(activeTok);
+      }
+      fetchMyReviews(activeTok);
+    } else {
+      setToken(null);
+      setCurrentUser(null);
+      setReviews([]);
     }
-  }, []);
+  }, [externalToken, externalUser]);
 
   const authHeaders = (activeToken?: string | null) => ({
     "Content-Type": "application/json",
@@ -104,26 +133,30 @@ export default function MemberBPanel() {
     e.preventDefault();
     setAuthStatus("Signing in...");
 
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!res.ok) {
-      setAuthStatus("Login failed. Check email/password.");
-      return;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        setAuthStatus(errorData.detail || "Login failed. Check email and password.");
+        return;
+      }
+
+      const data = await res.json();
+      setToken(data.access_token);
+      localStorage.setItem("fitcheck_member_b_token", data.access_token);
+      localStorage.setItem("fitcheck_token", data.access_token);
+
+      await fetchMe(data.access_token);
+      await fetchMyReviews(data.access_token);
+      setAuthStatus("Authenticated successfully.");
+    } catch (err: any) {
+      setAuthStatus(`Connection error: ${err.message}. Is backend running on port 8000?`);
     }
-
-    const data = await res.json();
-
-    setToken(data.access_token);
-    localStorage.setItem("fitcheck_member_b_token", data.access_token);
-
-    await fetchMe(data.access_token);
-    await fetchMyReviews(data.access_token);
-
-    setAuthStatus("Authenticated successfully.");
   };
 
   const register = async (e: React.FormEvent) => {
@@ -136,39 +169,47 @@ export default function MemberBPanel() {
 
     setAuthStatus("Creating account...");
 
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: registerName.trim(),
-        email,
-        password,
-      }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: registerName.trim(),
+          email,
+          password,
+        }),
+      });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      const detail =
-        typeof err.detail === "string"
-          ? err.detail
-          : "Registration failed. Check the entered details.";
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const detail =
+          typeof err.detail === "string"
+            ? err.detail
+            : "Registration failed. Check the entered details.";
 
-      setAuthStatus(`Registration failed: ${detail}`);
-      return;
+        setAuthStatus(`Registration failed: ${detail}`);
+        return;
+      }
+
+      setRegisterName("");
+      setAuthMode("login");
+      setAuthStatus("Registration successful. You can now log in.");
+    } catch (err: any) {
+      setAuthStatus(`Connection error: ${err.message}. Is backend running on port 8000?`);
     }
-
-    setRegisterName("");
-    setAuthMode("login");
-    setAuthStatus("Registration successful. You can now log in.");
   };
 
   const logout = () => {
     localStorage.removeItem("fitcheck_member_b_token");
+    localStorage.removeItem("fitcheck_token");
     setToken(null);
     setCurrentUser(null);
     setReviews([]);
     setAuditLogs([]);
     setAuthStatus("Logged out.");
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   const fetchMyReviews = async (activeToken?: string | null) => {
@@ -324,7 +365,7 @@ export default function MemberBPanel() {
     <section style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       <div
         className="glass-panel"
-        style={{ padding: "28px", borderColor: "rgba(117,70,111,0.5)" }}
+        style={{ padding: "28px", borderColor: "var(--border-color)" }}
       >
         <div
           style={{
@@ -335,7 +376,7 @@ export default function MemberBPanel() {
           }}
         >
           <div>
-            <span className="badge badge-info">Member B Contribution</span>
+            <span className="badge badge-info">Verified Community Feedback</span>
 
             <h2
               style={{
@@ -353,7 +394,7 @@ export default function MemberBPanel() {
                 marginTop: "6px",
               }}
             >
-              MySQL review source of truth + Redis Stack vector retrieval.
+              Authentic fit reviews and semantic vector search powered by high-dimensional embeddings.
             </p>
           </div>
 
@@ -380,14 +421,7 @@ export default function MemberBPanel() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(300px, 0.8fr) minmax(420px, 1.2fr)",
-          gap: "28px",
-          alignItems: "start",
-        }}
-      >
+      <div className="reviews-grid">
         <div
           className="glass-panel"
           style={{ padding: "28px" }}
@@ -755,7 +789,7 @@ export default function MemberBPanel() {
                   padding: "16px",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
-                  background: "rgba(0,0,0,0.2)",
+                  background: "var(--bg-card-subtle)",
                 }}
               >
                 <strong>
@@ -828,7 +862,7 @@ export default function MemberBPanel() {
                     onClick={() => deleteReview(r.review_id)}
                     style={{
                       ...buttonStyle,
-                      background: "#7f1d1d",
+                      background: "var(--danger)",
                     }}
                   >
                     <Trash2 size={15} /> Delete
@@ -902,6 +936,7 @@ export default function MemberBPanel() {
                 padding: "16px",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-sm)",
+                background: "var(--bg-card-subtle)",
               }}
             >
               <strong>
@@ -912,7 +947,7 @@ export default function MemberBPanel() {
               <div
                 style={{
                   marginTop: "5px",
-                  color: "var(--accent-purple)",
+                  color: "var(--accent-plum)",
                   fontWeight: 700,
                 }}
               >
@@ -982,7 +1017,9 @@ export default function MemberBPanel() {
               marginTop: "10px",
               padding: "10px",
               overflowX: "auto",
-              background: "rgba(0,0,0,0.25)",
+              background: "var(--bg-card-subtle)",
+              border: "1px solid var(--border-color)",
+              color: "var(--text-primary)",
               borderRadius: "6px",
               fontSize: "0.78rem",
             }}

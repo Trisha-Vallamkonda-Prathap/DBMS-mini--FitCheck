@@ -1,22 +1,54 @@
 :root {
-  --bg-primary: #0a0d14;
-  --bg-secondary: #121824;
-  --bg-card: rgba(22, 30, 46, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-focus: #6366f1;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-purple: #818cf8;
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --accent-glow: rgba(99, 102, 241, 0.25);
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Warm Ivory Palette */
+  --bg-primary: #F8F6F1;       /* Warm ivory — dominant page background */
+  --bg-secondary: #FFFFFF;     /* Crisp white container background */
+  --bg-card: #FFFFFF;          /* Pure white card backgrounds */
+  --bg-card-subtle: #F3EFEA;   /* Soft warm stone tint for nested cards */
+  --bg-input: #FFFFFF;
+  --bg-hover: #F2ECE4;
+
+  /* Borders & Dividers */
+  --border-color: #E8E2D8;     /* Warm stone — cards, borders and dividers */
+  --border-focus: #75466F;     /* Muted plum for active focus */
+  --border-subtle: #EFEBE4;
+
+  /* Typography */
+  --text-primary: #29252B;     /* Charcoal — primary text */
+  --text-secondary: #58515B;   /* Deep charcoal for secondary text */
+  --text-muted: #7E7783;       /* Subdued charcoal for captions/labels */
+
+  /* Accents & Brand */
+  --accent-plum: #75466F;       /* Muted plum — buttons and restrained accents */
+  --accent-plum-hover: #5F3759;
+  --accent-plum-light: rgba(117, 70, 111, 0.08);
+  --accent-plum-border: rgba(117, 70, 111, 0.25);
+
+  --accent-sage: #A7B7A0;       /* Sage — positive states and highlights */
+  --accent-sage-dark: #375330;  /* High contrast accessible sage green */
+  --accent-sage-light: rgba(167, 183, 160, 0.22);
+  --accent-sage-border: #A7B7A0;
+
+  --accent-rose: #DDA18E;       /* Dusty rose — secondary accents */
+  --accent-rose-dark: #8C4735;
+  --accent-rose-light: rgba(221, 161, 142, 0.22);
+  --accent-rose-border: #DDA18E;
+
+  --border-warm-stone: #E8E2D8;
+
+  /* Legacy CSS variable aliases mapped to new palette */
+  --accent-purple: #75466F;     /* Replaced neon purple with muted plum */
+  --accent-gradient: #75466F;   /* Removed neon gradient; solid plum */
+  --accent-glow: rgba(117, 70, 111, 0.12);
+
+  /* Functional alert states */
+  --success: #375330;
+  --warning: #87541B;
+  --danger: #933030;
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 }
 
 * {
@@ -39,20 +71,16 @@ a {
   text-decoration: none;
 }
 
-/* Glassmorphism containers */
+/* Polished Editorial Fashion-Tech Card */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 4px 20px -2px rgba(41, 37, 43, 0.05), 0 1px 3px rgba(41, 37, 43, 0.03);
 }
 
 .gradient-text {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--accent-plum);
 }
 
 .badge {
@@ -67,13 +95,177 @@ a {
 }
 
 .badge-info {
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--accent-purple);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--accent-plum-light);
+  color: var(--accent-plum);
+  border: 1px solid var(--accent-plum-border);
 }
 
 .badge-success {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--accent-sage-light);
+  color: var(--accent-sage-dark);
+  border: 1px solid var(--accent-sage-border);
+}
+
+.badge-rose {
+  background: var(--accent-rose-light);
+  color: var(--accent-rose-dark);
+  border: 1px solid var(--accent-rose-border);
+}
+
+/* Inputs & Form Controls */
+input, select, textarea {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+select {
+  cursor: pointer;
+}
+
+select option {
+  background-color: #FFFFFF !important;
+  color: #29252B !important;
+  padding: 8px 12px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(117, 70, 111, 0.15) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Auth Entry Point */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background-color: var(--bg-primary);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 36px 32px;
+  box-shadow: 0 8px 32px rgba(41, 37, 43, 0.06);
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.auth-tab-btn.active {
+  color: var(--accent-plum);
+  border-bottom-color: var(--accent-plum);
+}
+
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Navigation Tabs */
+.nav-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.nav-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.nav-tab-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-tab-btn.active {
+  background: var(--accent-plum);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(117, 70, 111, 0.22);
+}
+
+.nav-tab-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Responsive Grids */
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.3fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }

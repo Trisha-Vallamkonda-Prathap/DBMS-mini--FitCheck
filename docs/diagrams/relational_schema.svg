@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" style="background-color: #FDFCFA; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#29252B" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#75466F" />
+    </marker>
+  </defs>
+
+  <!-- Title & Header Banner -->
+  <rect x="50" y="30" width="1500" height="75" rx="8" fill="#75466F" filter="url(#shadow)"/>
+  <text x="80" y="70" font-size="26" font-weight="bold" fill="#F8F6F1">FitCheck — Relational Database Schema &amp; Constraint Map</text>
+  <text x="80" y="93" font-size="14" fill="#E8E2D8">3NF Normalized Relational Design | Primary Keys, Foreign Keys, Referential Integrity, and Domain Constraints</text>
+  <text x="1380" y="75" font-size="14" font-weight="600" fill="#A7B7A0">InnoDB Engine</text>
+
+  <!-- ROW 1 TABLES -->
+  <!-- TABLE 1: USER -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="140" width="320" height="220" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="50" y="140" width="320" height="35" rx="6" fill="#75466F"/>
+    <rect x="50" y="168" width="320" height="7" fill="#75466F"/>
+    <text x="210" y="164" font-size="15" font-weight="bold" fill="#F8F6F1" text-anchor="middle">USER</text>
+    <text x="65" y="195" font-size="12" font-weight="bold" fill="#75466F">PK | user_id : INT AUTO_INCREMENT</text>
+    <text x="65" y="218" font-size="12" fill="#29252B">      name : VARCHAR(100) NOT NULL</text>
+    <text x="65" y="241" font-size="12" font-weight="bold" fill="#29252B">UQ | email : VARCHAR(255) NOT NULL</text>
+    <text x="65" y="264" font-size="12" fill="#29252B">      password_hash : VARCHAR(255) NOT NULL</text>
+    <text x="65" y="287" font-size="12" fill="#29252B">CK | role : VARCHAR(10) IN ('USER','ADMIN')</text>
+    <text x="65" y="310" font-size="12" fill="#29252B">      created_at : TIMESTAMP DEFAULT CURRENT_TIMESTAMP</text>
+    <text x="65" y="340" font-size="11" fill="#75466F" font-style="italic">Referenced by: BODY_PROFILE, PURCHASE, FIT_REVIEW</text>
+  </g>
+
+  <!-- TABLE 2: BODY_PROFILE -->
+  <g filter="url(#shadow)">
+    <rect x="420" y="140" width="340" height="280" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="420" y="140" width="340" height="35" rx="6" fill="#A7B7A0"/>
+    <rect x="420" y="168" width="340" height="7" fill="#A7B7A0"/>
+    <text x="590" y="164" font-size="15" font-weight="bold" fill="#29252B" text-anchor="middle">BODY_PROFILE</text>
+    <text x="435" y="195" font-size="12" font-weight="bold" fill="#75466F">PK | profile_id : INT AUTO_INCREMENT</text>
+    <text x="435" y="218" font-size="12" font-weight="bold" fill="#29252B">FK, UQ | user_id : INT -> USER(user_id)</text>
+    <text x="435" y="235" font-size="11" fill="#75466F">           [ON DELETE CASCADE, ON UPDATE CASCADE]</text>
+    <text x="435" y="258" font-size="12" fill="#29252B">CK | height : DECIMAL(5,2) > 0</text>
+    <text x="435" y="281" font-size="12" fill="#29252B">CK | waist : DECIMAL(5,2) > 0</text>
+    <text x="435" y="304" font-size="12" fill="#29252B">CK | hip : DECIMAL(5,2) > 0</text>
+    <text x="435" y="327" font-size="12" fill="#29252B">CK | thigh, inseam : DECIMAL(5,2) > 0</text>
+    <text x="435" y="350" font-size="12" fill="#29252B">CK | preferred_fit : IN ('TIGHT','REGULAR','RELAXED')</text>
+    <text x="435" y="373" font-size="12" fill="#29252B">      updated_at : TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</text>
+    <text x="435" y="405" font-size="11" fill="#75466F" font-style="italic">Trigger: trg_before_body_profile_update</text>
+  </g>
+
+  <!-- TABLE 3: BRAND -->
+  <g filter="url(#shadow)">
+    <rect x="810" y="140" width="340" height="170" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="810" y="140" width="340" height="35" rx="6" fill="#75466F"/>
+    <rect x="810" y="168" width="340" height="7" fill="#75466F"/>
+    <text x="980" y="164" font-size="15" font-weight="bold" fill="#F8F6F1" text-anchor="middle">BRAND</text>
+    <text x="825" y="195" font-size="12" font-weight="bold" fill="#75466F">PK | brand_id : INT AUTO_INCREMENT</text>
+    <text x="825" y="222" font-size="12" font-weight="bold" fill="#29252B">UQ | brand_name : VARCHAR(100) NOT NULL</text>
+    <text x="825" y="249" font-size="12" fill="#29252B">CK | sizing_system : IN ('ALPHA','NUMERIC','WAIST_BASED')</text>
+    <text x="825" y="290" font-size="11" fill="#75466F" font-style="italic">Referenced by: GARMENT (RESTRICT on delete)</text>
+  </g>
+
+  <!-- TABLE 4: GARMENT -->
+  <g filter="url(#shadow)">
+    <rect x="1200" y="140" width="350" height="230" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="1200" y="140" width="350" height="35" rx="6" fill="#75466F"/>
+    <rect x="1200" y="168" width="350" height="7" fill="#75466F"/>
+    <text x="1375" y="164" font-size="15" font-weight="bold" fill="#F8F6F1" text-anchor="middle">GARMENT</text>
+    <text x="1215" y="195" font-size="12" font-weight="bold" fill="#75466F">PK | garment_id : INT AUTO_INCREMENT</text>
+    <text x="1215" y="218" font-size="12" font-weight="bold" fill="#29252B">FK | brand_id : INT -> BRAND(brand_id)</text>
+    <text x="1215" y="235" font-size="11" fill="#75466F">       [ON DELETE RESTRICT, ON UPDATE CASCADE]</text>
+    <text x="1215" y="258" font-size="12" fill="#29252B">      garment_name : VARCHAR(150) NOT NULL</text>
+    <text x="1215" y="281" font-size="12" fill="#29252B">CK | garment_category : IN ('Jeans','Trousers')</text>
+    <text x="1215" y="304" font-size="12" fill="#29252B">CK | fit_type : IN ('STRAIGHT','SLIM','SKINNY',...)</text>
+    <text x="1215" y="327" font-size="12" fill="#29252B">      description : TEXT NULL</text>
+    <text x="1215" y="352" font-size="11" fill="#75466F" font-style="italic">Index: idx_garment_brand</text>
+  </g>
+
+  <!-- ROW 2 TABLES -->
+  <!-- TABLE 5: GARMENT_SIZE -->
+  <g filter="url(#shadow)">
+    <rect x="1200" y="440" width="350" height="180" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="1200" y="440" width="350" height="35" rx="6" fill="#A7B7A0"/>
+    <rect x="1200" y="468" width="350" height="7" fill="#A7B7A0"/>
+    <text x="1375" y="464" font-size="15" font-weight="bold" fill="#29252B" text-anchor="middle">GARMENT_SIZE</text>
+    <text x="1215" y="495" font-size="12" font-weight="bold" fill="#75466F">PK | garment_size_id : INT AUTO_INCREMENT</text>
+    <text x="1215" y="518" font-size="12" font-weight="bold" fill="#29252B">FK | garment_id : INT -> GARMENT(garment_id)</text>
+    <text x="1215" y="535" font-size="11" fill="#75466F">       [ON DELETE RESTRICT, ON UPDATE CASCADE]</text>
+    <text x="1215" y="558" font-size="12" fill="#29252B">      size_label : VARCHAR(20) NOT NULL</text>
+    <text x="1215" y="581" font-size="12" font-weight="bold" fill="#75466F">UQ | uq_garment_size (garment_id, size_label)</text>
+    <text x="1215" y="605" font-size="11" fill="#75466F" font-style="italic">Index: idx_garment_size_garment</text>
+  </g>
+
+  <!-- TABLE 6: GARMENT_MEASUREMENT -->
+  <g filter="url(#shadow)">
+    <rect x="1200" y="680" width="350" height="230" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="1200" y="680" width="350" height="35" rx="6" fill="#A7B7A0"/>
+    <rect x="1200" y="708" width="350" height="7" fill="#A7B7A0"/>
+    <text x="1375" y="704" font-size="15" font-weight="bold" fill="#29252B" text-anchor="middle">GARMENT_MEASUREMENT</text>
+    <text x="1215" y="735" font-size="12" font-weight="bold" fill="#75466F">PK | measurement_id : INT AUTO_INCREMENT</text>
+    <text x="1215" y="758" font-size="12" font-weight="bold" fill="#29252B">FK | garment_size_id : INT -> GARMENT_SIZE</text>
+    <text x="1215" y="775" font-size="11" fill="#75466F">       [ON DELETE CASCADE, ON UPDATE CASCADE]</text>
+    <text x="1215" y="798" font-size="12" fill="#29252B">CK | measurement_type : IN ('waist','hip','thigh','inseam','rise')</text>
+    <text x="1215" y="821" font-size="12" fill="#29252B">CK | measurement_value : DECIMAL(6,2) > 0</text>
+    <text x="1215" y="844" font-size="12" fill="#29252B">CK | unit : VARCHAR(5) IN ('cm','in') DEFAULT 'cm'</text>
+    <text x="1215" y="867" font-size="12" font-weight="bold" fill="#75466F">UQ | uq_size_measurement (garment_size_id, type)</text>
+    <text x="1215" y="895" font-size="11" fill="#75466F" font-style="italic">Function: fn_convert_to_cm</text>
+  </g>
+
+  <!-- TABLE 7: PURCHASE -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="470" width="370" height="260" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="50" y="470" width="370" height="35" rx="6" fill="#DDA18E"/>
+    <rect x="50" y="498" width="370" height="7" fill="#DDA18E"/>
+    <text x="235" y="494" font-size="15" font-weight="bold" fill="#29252B" text-anchor="middle">PURCHASE</text>
+    <text x="65" y="525" font-size="12" font-weight="bold" fill="#75466F">PK | purchase_id : INT AUTO_INCREMENT</text>
+    <text x="65" y="548" font-size="12" font-weight="bold" fill="#29252B">FK | user_id : INT -> USER(user_id) [RESTRICT]</text>
+    <text x="65" y="571" font-size="12" font-weight="bold" fill="#29252B">FK | garment_size_id : INT -> GARMENT_SIZE [RESTRICT]</text>
+    <text x="65" y="594" font-size="12" fill="#29252B">      purchase_date : DATE DEFAULT (CURRENT_DATE)</text>
+    <text x="65" y="617" font-size="12" fill="#29252B">CK | outcome : IN ('KEPT', 'RETURNED', 'EXCHANGED')</text>
+    <text x="65" y="640" font-size="12" fill="#29252B">CK | fit_satisfaction : IN ('GOOD', 'AVERAGE', 'POOR')</text>
+    <text x="65" y="663" font-size="12" fill="#29252B">CK | fit_preference : IN ('TIGHT', 'REGULAR', 'RELAXED')</text>
+    <text x="65" y="695" font-size="11" fill="#75466F" font-weight="bold">Calibrated Fit Evidence: outcome='KEPT' AND fit_satisfaction='GOOD'</text>
+    <text x="65" y="715" font-size="11" fill="#75466F" font-style="italic">Indexes: idx_purchase_user, idx_purchase_size</text>
+  </g>
+
+  <!-- TABLE 8: FIT_REVIEW -->
+  <g filter="url(#shadow)">
+    <rect x="470" y="470" width="380" height="280" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="470" y="470" width="380" height="35" rx="6" fill="#DDA18E"/>
+    <rect x="470" y="498" width="380" height="7" fill="#DDA18E"/>
+    <text x="660" y="494" font-size="15" font-weight="bold" fill="#29252B" text-anchor="middle">FIT_REVIEW</text>
+    <text x="485" y="525" font-size="12" font-weight="bold" fill="#75466F">PK | review_id : INT AUTO_INCREMENT</text>
+    <text x="485" y="548" font-size="12" font-weight="bold" fill="#29252B">FK | user_id : INT -> USER(user_id) [RESTRICT]</text>
+    <text x="485" y="571" font-size="12" font-weight="bold" fill="#29252B">FK | garment_size_id : INT -> GARMENT_SIZE [RESTRICT]</text>
+    <text x="485" y="594" font-size="12" fill="#29252B">CK | overall_fit : IN ('TOO_SMALL','SLIGHTLY_SMALL','TRUE_TO_SIZE',...)</text>
+    <text x="485" y="617" font-size="12" fill="#29252B">CK | waist_fit, hip_fit, thigh_fit : IN ('TIGHT','GOOD','LOOSE')</text>
+    <text x="485" y="640" font-size="12" fill="#29252B">CK | length_fit : IN ('SHORT','GOOD','LONG')</text>
+    <text x="485" y="663" font-size="12" fill="#29252B">CK | review_text : TEXT [CHAR_LENGTH(TRIM(review_text)) > 0]</text>
+    <text x="485" y="686" font-size="12" fill="#29252B">      created_at : TIMESTAMP DEFAULT CURRENT_TIMESTAMP</text>
+    <text x="485" y="715" font-size="11" fill="#75466F" font-weight="bold">Audit Triggers: trg_after_review_insert / update / delete -> REVIEW_AUDIT</text>
+    <text x="485" y="735" font-size="11" fill="#75466F" font-style="italic">Vector Search Sync: Redis Hash 'review_vector:{id}' (384d embedding)</text>
+  </g>
+
+  <!-- TABLE 9: REVIEW_AUDIT (Audit Trail) -->
+  <g filter="url(#shadow)">
+    <rect x="470" y="800" width="380" height="150" rx="6" fill="#FFFFFF" stroke="#E8E2D8" stroke-width="2"/>
+    <rect x="470" y="800" width="380" height="30" rx="6" fill="#75466F"/>
+    <rect x="470" y="825" width="380" height="5" fill="#75466F"/>
+    <text x="660" y="821" font-size="13" font-weight="bold" fill="#F8F6F1" text-anchor="middle">REVIEW_AUDIT (Audit Logging)</text>
+    <text x="485" y="848" font-size="11.5" font-weight="bold" fill="#75466F">PK | audit_id : INT AUTO_INCREMENT</text>
+    <text x="485" y="868" font-size="11.5" fill="#29252B">      review_id : INT (Target review reference)</text>
+    <text x="485" y="888" font-size="11.5" fill="#29252B">      action : VARCHAR(10) ('INSERT', 'UPDATE', 'DELETE')</text>
+    <text x="485" y="908" font-size="11.5" fill="#29252B">      user_id : INT NULL | changed_at : TIMESTAMP</text>
+    <text x="485" y="928" font-size="11.5" fill="#29252B">      details : TEXT</text>
+  </g>
+
+  <!-- FOREIGN KEY PATHWAYS (Visual Arrows) -->
+  <!-- USER -> BODY_PROFILE -->
+  <line x1="370" y1="210" x2="420" y2="210" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- BRAND -> GARMENT -->
+  <line x1="1150" y1="210" x2="1200" y2="210" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- GARMENT -> GARMENT_SIZE -->
+  <line x1="1375" y1="370" x2="1375" y2="440" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- GARMENT_SIZE -> GARMENT_MEASUREMENT -->
+  <line x1="1375" y1="620" x2="1375" y2="680" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- USER -> PURCHASE -->
+  <line x1="210" y1="360" x2="210" y2="470" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- USER -> FIT_REVIEW -->
+  <path d="M 280 360 L 280 430 L 530 430 L 530 470" fill="none" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- GARMENT_SIZE -> PURCHASE -->
+  <path d="M 1200" d="M 1200 520 L 900 520 L 900 450 L 380 450 L 380 470" fill="none" stroke="#29252B" stroke-dasharray="4,4" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <!-- GARMENT_SIZE -> FIT_REVIEW -->
+  <path d="M 1200 550 L 850 550" fill="none" stroke="#29252B" stroke-dasharray="4,4" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <!-- FIT_REVIEW -> REVIEW_AUDIT -->
+  <line x1="660" y1="750" x2="660" y2="800" stroke="#75466F" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Schema Summary Panel -->
+  <rect x="50" y="990" width="1500" height="170" rx="8" fill="#F8F6F1" stroke="#E8E2D8" stroke-width="1.5"/>
+  <text x="75" y="1020" font-size="15" font-weight="bold" fill="#75466F">Referential Integrity &amp; Normalization Verification (3NF Compliance):</text>
+  <text x="75" y="1048" font-size="13" fill="#29252B">1. <tspan font-weight="bold">Boyce-Codd / 3NF Normalization:</tspan> Every non-key attribute is non-transitively dependent strictly on the primary key. Sizing conventions belong to BRAND; style names belong to GARMENT; individual sizing belongs to GARMENT_SIZE; dimensions belong to GARMENT_MEASUREMENT.</text>
+  <text x="75" y="1073" font-size="13" fill="#29252B">2. <tspan font-weight="bold">Referential Cascade vs Restrict Rules:</tspan> Dependent child entities (BODY_PROFILE, GARMENT_MEASUREMENT) use ON DELETE CASCADE to prevent orphaned records. Critical business records (BRAND, GARMENT, GARMENT_SIZE) enforce ON DELETE RESTRICT to guarantee audit durability.</text>
+  <text x="75" y="1098" font-size="13" fill="#29252B">3. <tspan font-weight="bold">Candidate Key Protection:</tspan> Composite unique keys (garment_id, size_label) and (garment_size_id, measurement_type) eliminate duplicate sizes and dimensional conflicts at the database engine level.</text>
+  <text x="75" y="1123" font-size="13" fill="#29252B">4. <tspan font-weight="bold">Domain Constraints &amp; Enums:</tspan> All measurements enforce strictly positive values (> 0); review ratings and purchase outcomes are constrained by explicit CHECK constraints.</text>
+</svg>

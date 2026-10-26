@@ -1,10 +1,15 @@
 # FitCheck — Relational Schema Documentation & Data Dictionary
 
-This document details the normalized relational database schema implemented in `database/fitcheck_setup.sql` and visualised in `docs/diagrams/dbms_mini_v4.drawio`.
+This document details the normalized relational database schema implemented in `database/fitcheck_setup.sql` and visualized in `docs/diagrams/dbms_mini_v4.drawio`, `docs/diagrams/er_diagram.png`, and `docs/diagrams/relational_schema.png`.
+
+### Print-Ready Artifacts:
+- **Conceptual ER Diagram:** [docs/diagrams/er_diagram.pdf](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.pdf) | [docs/diagrams/er_diagram.png](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.png) | [docs/diagrams/er_diagram.svg](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.svg)
+- **Relational Schema & Constraints:** [docs/diagrams/relational_schema.pdf](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.pdf) | [docs/diagrams/relational_schema.png](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.png) | [docs/diagrams/relational_schema.svg](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.svg)
+- **Draw.io Source Diagram:** [docs/diagrams/dbms_mini_v4.drawio](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/dbms_mini_v4.drawio)
 
 ---
 
-## 1. Schema Overview & Entity Summary
+## 1. Schema Overview & Entity Classification
 
 The database is built on **MySQL 8.0+** using the `InnoDB` storage engine for ACID compliance, row-level locking, and foreign key enforcement.
 
@@ -16,7 +21,7 @@ The database is built on **MySQL 8.0+** using the `InnoDB` storage engine for AC
   (1:N)  |              | (1:N)
          v              v
    +----------+   +------------+
-   | PURCHASE |   | FIT_REVIEW |
+   | PURCHASE |   | FIT_REVIEW |  <=====>  [Redis Vector Hash: review_vector:{id}]
    +----------+   +------------+
          ^              ^
    (1:N) |              | (1:N)
@@ -36,6 +41,24 @@ The database is built on **MySQL 8.0+** using the `InnoDB` storage engine for AC
   | BRAND |
   +-------+
 ```
+
+### Formal Classification of Entities (Strong vs Dependent / Weak)
+
+In strict accordance with relational database theory and the DBMS Level 3 evaluation criteria, entities in FitCheck are categorized based on existence dependency and identifier autonomy:
+
+1. **Strong (Regular) Entities:**
+   - **`USER`**: Possesses autonomous existence with surrogate primary key `user_id`. Users exist independently of whether they have logged a body profile, purchase, or review.
+   - **`BRAND`**: Autonomous catalog entity with primary key `brand_id` and unique commercial name `brand_name`. Does not depend on the existence of any garment style.
+   - **`GARMENT`**: Autonomous apparel style entity identified by `garment_id`. While it references `BRAND(brand_id)` via a mandatory foreign key, it represents a distinct commercial entity with its own independent primary key and lifecycle.
+
+2. **Dependent / Subordinate Entities:**
+   - **`BODY_PROFILE`**: Exists in a strict 1-to-0..1 subordinate relationship with `USER`. It shares `user_id` as a foreign key with `ON DELETE CASCADE`. A body profile cannot exist without an underlying registered user.
+   - **`GARMENT_SIZE`**: Subordinate entity whose business identity is discriminated by `(garment_id, size_label)`. Size labels (e.g. "28", "M", "32W 30L") are meaningful only within the scope of a specific `GARMENT`.
+   - **`GARMENT_MEASUREMENT`**: Dependent measurement specification entity linked to `GARMENT_SIZE` with `ON DELETE CASCADE`. Each row specifies a physical dimension (`waist`, `hip`, `thigh`, etc.) for a specific garment size.
+
+3. **Associative / Transactional Entities:**
+   - **`PURCHASE`**: Models the many-to-many relationship between `USER` and `GARMENT_SIZE`, recording historical acquisition dates, outcomes (`KEPT`, `RETURNED`, `EXCHANGED`), and personalized fit satisfaction (`GOOD`, `AVERAGE`, `POOR`).
+   - **`FIT_REVIEW`**: Models the many-to-many relationship between `USER` and `GARMENT_SIZE`, capturing public natural-language fit reviews and localized categorical ratings (`overall_fit`, `waist_fit`, etc.). Synchronized to Redis Stack for semantic vector search.
 
 ---
 

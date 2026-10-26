@@ -14,30 +14,59 @@ import {
   CheckCircle2,
   Info,
   ChevronRight,
+  MessageSquare,
+  LogIn,
+  LogOut,
+  Lock,
+  Mail,
+  ShieldCheck,
 } from "lucide-react";
 
-// API Base URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+// API Base URL with host alignment (supports localhost and 127.0.0.1 dynamically)
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
+    return `http://${host}:8000/api/v1`;
+  }
+  return "http://localhost:8000/api/v1";
+};
+const API_BASE = getApiBaseUrl();
 
-// Demo Users for fast switching during evaluation (authenticated via Member B auth)
-const DEMO_USERS = [
-  { id: 2, name: "Priya Sharma", email: "priya@example.com", note: "Kept Levis sz 28 (Good fit) — Ideal cross-brand demo" },
-  { id: 3, name: "Ananya Rao", email: "ananya@example.com", note: "Petite (Waist 64cm), Kept sz 26 (Tight fit)" },
-  { id: 5, name: "Kavya Iyer", email: "kavya@example.com", note: "Multi-brand evidence (Levis, Mango, Madewell)" },
-  { id: 10, name: "Lakshmi Reddy", email: "lakshmi@example.com", note: "Cold-start test (No profile, no purchases)" },
+// Viva Evaluation Test Personas for convenient grading
+const DEMO_PERSONAS = [
+  { id: 2, name: "Priya Sharma", email: "priya@example.com", role: "USER", note: "Standard Profile (Kept Levis 28) — Ideal cross-brand demo" },
+  { id: 3, name: "Ananya Rao", email: "ananya@example.com", role: "USER", note: "Petite Profile (Waist 64cm, Kept sz 26)" },
+  { id: 1, name: "Admin User", email: "admin@fitcheck.com", role: "ADMIN", note: "System Administrator (Audit trail access)" },
 ];
 
-export default function FitCheckMemberA() {
+export default function FitCheckApp() {
+  // Authentication states
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authEmail, setAuthEmail] = useState<string>("priya@example.com");
+  const [authPassword, setAuthPassword] = useState<string>("password123");
+  const [registerName, setRegisterName] = useState<string>("");
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
   // Navigation
   const [activeTab, setActiveTab] = useState<
     "recommend" | "profile" | "purchases" | "catalogue" | "reviews"
   >("recommend");
-  const [selectedUserId, setSelectedUserId] = useState<number>(2);
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
-  // Data states
+  // Catalogue & Dropdown Data states
   const [brands, setBrands] = useState<any[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState<boolean>(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
+
   const [garments, setGarments] = useState<any[]>([]);
+  const [garmentsLoading, setGarmentsLoading] = useState<boolean>(false);
+  const [garmentError, setGarmentError] = useState<string | null>(null);
+
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null);
   const [selectedGarmentId, setSelectedGarmentId] = useState<number | null>(null);
   const [garmentDetail, setGarmentDetail] = useState<any | null>(null);
@@ -64,6 +93,12 @@ export default function FitCheckMemberA() {
   });
   const [purchaseStatus, setPurchaseStatus] = useState<string | null>(null);
 
+  // Dedicated Cascaded Purchase Form Catalogue States
+  const [purchaseBrandId, setPurchaseBrandId] = useState<number | null>(null);
+  const [purchaseGarments, setPurchaseGarments] = useState<any[]>([]);
+  const [purchaseGarmentId, setPurchaseGarmentId] = useState<number | null>(null);
+  const [purchaseSizes, setPurchaseSizes] = useState<any[]>([]);
+
   // Recommendation state
   const [recommendation, setRecommendation] = useState<any | null>(null);
   const [manualWaist, setManualWaist] = useState<string>("");
@@ -73,48 +108,20 @@ export default function FitCheckMemberA() {
 
   // Backend connectivity status
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Helper: Authenticate with Member B's login endpoint to obtain real JWT
-  const loginDemoPersona = async (email: string): Promise<string | null> => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: "password123" }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAuthToken(data.access_token);
-        return data.access_token;
-      }
-    } catch (err) {
-      console.warn("Auto-login note: Backend offline or B-auth pending.", err);
-    }
-    return null;
-  };
-
-  // Initial load
+  // Session check on initial mount
   useEffect(() => {
-    checkHealth();
-    fetchBrands();
-    fetchGarments();
+    const savedToken =
+      localStorage.getItem("fitcheck_token") ||
+      localStorage.getItem("fitcheck_member_b_token");
+
+    if (savedToken) {
+      validateAndRestoreSession(savedToken);
+    } else {
+      setAuthChecking(false);
+      checkHealth();
+    }
   }, []);
-
-  // When selected user changes, login and reload profile + purchases
-  useEffect(() => {
-    if (selectedUserId) {
-      const user = DEMO_USERS.find((u) => u.id === selectedUserId);
-      if (user) {
-        loginDemoPersona(user.email).then((token) => {
-          fetchUserProfile(token);
-          fetchUserPurchases(token);
-        });
-      }
-      setRecommendation(null);
-      setRecError(null);
-    }
-  }, [selectedUserId]);
 
   // When selected garment changes, load detail
   useEffect(() => {
@@ -124,6 +131,141 @@ export default function FitCheckMemberA() {
       setGarmentDetail(null);
     }
   }, [selectedGarmentId]);
+
+  // Session Validation
+  const validateAndRestoreSession = async (token: string) => {
+    setAuthChecking(true);
+    setAuthError(null);
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const userData = await res.json();
+        setCurrentUser(userData);
+        setAuthToken(token);
+        localStorage.setItem("fitcheck_token", token);
+        localStorage.setItem("fitcheck_member_b_token", token);
+        fetchUserProfile(token);
+        fetchUserPurchases(token);
+        fetchBrands();
+        checkHealth();
+      } else {
+        // Expired or invalid token
+        localStorage.removeItem("fitcheck_token");
+        localStorage.removeItem("fitcheck_member_b_token");
+        setAuthToken(null);
+        setCurrentUser(null);
+      }
+    } catch {
+      // Backend offline or connection issue
+      setAuthError("Backend service is not responding at http://localhost:8000. Please ensure uvicorn is running.");
+      setApiConnected(false);
+    } finally {
+      setAuthChecking(false);
+    }
+  };
+
+  // Login handler
+  const handleLogin = async (e?: React.FormEvent, overrideEmail?: string, overridePwd?: string) => {
+    if (e) e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+    const emailToUse = overrideEmail || authEmail;
+    const pwdToUse = overridePwd || authPassword;
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToUse, password: pwdToUse }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const token = data.access_token;
+        localStorage.setItem("fitcheck_token", token);
+        localStorage.setItem("fitcheck_member_b_token", token);
+        setAuthToken(token);
+
+        const meRes = await fetch(`${API_BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (meRes.ok) {
+          const userData = await meRes.json();
+          setCurrentUser(userData);
+          fetchUserProfile(token);
+          fetchUserPurchases(token);
+          fetchBrands();
+          checkHealth();
+        } else {
+          setCurrentUser({
+            name: emailToUse.split("@")[0],
+            email: emailToUse,
+            role: data.role || "USER",
+            user_id: 0,
+          });
+          fetchBrands();
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setAuthError(err.detail || "Authentication failed. Incorrect email or password.");
+      }
+    } catch (err: any) {
+      setAuthError(`Connection error: ${err.message}. Is backend running on http://localhost:8000?`);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Register handler
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerName.trim()) {
+      setAuthError("Please enter your name.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: registerName.trim(),
+          email: authEmail,
+          password: authPassword,
+        }),
+      });
+
+      if (res.ok) {
+        // Automatically sign in with newly registered account
+        await handleLogin(undefined, authEmail, authPassword);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setAuthError(err.detail || "Registration failed. An account with this email may already exist.");
+      }
+    } catch (err: any) {
+      setAuthError(`Connection error: ${err.message}. Ensure backend is running.`);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("fitcheck_token");
+    localStorage.removeItem("fitcheck_member_b_token");
+    setAuthToken(null);
+    setCurrentUser(null);
+    setProfile(null);
+    setPurchases([]);
+    setRecommendation(null);
+    setAuthError(null);
+  };
 
   // API Call: Health check
   const checkHealth = async () => {
@@ -136,26 +278,76 @@ export default function FitCheckMemberA() {
     }
   };
 
-  // API Call: Fetch Brands
+  // API Call: Fetch Brands (Robust with loading & error states)
   const fetchBrands = async () => {
+    setBrandsLoading(true);
+    setBrandError(null);
     try {
       const res = await fetch(`${API_BASE}/brands`);
       if (res.ok) {
         const data = await res.json();
         setBrands(data);
-        if (data.length > 0 && !selectedBrandId) {
-          // Default to Zara (brand 2) for cross-brand recommendation testing
-          const zara = data.find((b: any) => b.brand_name.toLowerCase() === "zara") || data[0];
-          setSelectedBrandId(zara.brand_id);
+        if (data.length > 0) {
+          const defaultBrand =
+            data.find((b: any) => b.brand_name.toLowerCase() === "zara") || data[0];
+          setSelectedBrandId(defaultBrand.brand_id);
+          fetchGarments(defaultBrand.brand_id);
+          handlePurchaseBrandChange(defaultBrand.brand_id);
         }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setBrandError(err.detail || "Database error loading catalogue brands.");
       }
-    } catch (err) {
-      console.error("Failed to fetch brands", err);
+    } catch (err: any) {
+      setBrandError(`Unable to load brands: ${err.message}`);
+    } finally {
+      setBrandsLoading(false);
     }
   };
 
-  // API Call: Fetch Garments
+  // Cascaded purchase dropdown handler: Brand -> Garments
+  const handlePurchaseBrandChange = async (brandId: number) => {
+    setPurchaseBrandId(brandId);
+    setPurchaseGarmentId(null);
+    setPurchaseSizes([]);
+    setNewPurchaseForm((prev) => ({ ...prev, garment_size_id: "" }));
+    try {
+      const res = await fetch(`${API_BASE}/garments?brand_id=${brandId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPurchaseGarments(data);
+        if (data.length > 0) {
+          handlePurchaseGarmentChange(data[0].garment_id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load purchase garments", err);
+    }
+  };
+
+  // Cascaded purchase dropdown handler: Garment -> Sizes
+  const handlePurchaseGarmentChange = async (garmentId: number) => {
+    setPurchaseGarmentId(garmentId);
+    setNewPurchaseForm((prev) => ({ ...prev, garment_size_id: "" }));
+    try {
+      const res = await fetch(`${API_BASE}/garments/${garmentId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const sizesList = data.sizes || [];
+        setPurchaseSizes(sizesList);
+        if (sizesList.length > 0) {
+          setNewPurchaseForm((prev) => ({ ...prev, garment_size_id: String(sizesList[0].garment_size_id) }));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load garment sizes for purchase", err);
+    }
+  };
+
+  // API Call: Fetch Garments for Selected Brand
   const fetchGarments = async (brandId?: number) => {
+    setGarmentsLoading(true);
+    setGarmentError(null);
     try {
       const url = brandId ? `${API_BASE}/garments?brand_id=${brandId}` : `${API_BASE}/garments`;
       const res = await fetch(url);
@@ -164,14 +356,23 @@ export default function FitCheckMemberA() {
         setGarments(data);
         if (data.length > 0) {
           setSelectedGarmentId(data[0].garment_id);
+          fetchGarmentDetail(data[0].garment_id);
+        } else {
+          setSelectedGarmentId(null);
+          setGarmentDetail(null);
         }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setGarmentError(err.detail || "Database error loading garments.");
       }
-    } catch (err) {
-      console.error("Failed to fetch garments", err);
+    } catch (err: any) {
+      setGarmentError(`Unable to load garments: ${err.message}`);
+    } finally {
+      setGarmentsLoading(false);
     }
   };
 
-  // API Call: Garment Detail
+  // API Call: Garment Detail (measurements, sizes)
   const fetchGarmentDetail = async (garmentId: number) => {
     try {
       const res = await fetch(`${API_BASE}/garments/${garmentId}`);
@@ -215,7 +416,7 @@ export default function FitCheckMemberA() {
           preferred_fit: "REGULAR",
         });
       }
-    } catch (err) {
+    } catch {
       setProfile(null);
     }
   };
@@ -325,8 +526,8 @@ export default function FitCheckMemberA() {
         target_garment_id: selectedGarmentId,
       };
       // Scoped to current authenticated user
-      if (authToken) {
-        payload.user_id = selectedUserId;
+      if (currentUser?.user_id) {
+        payload.user_id = currentUser.user_id;
       }
       if (manualWaist) payload.waist = parseFloat(manualWaist);
       if (manualHip) payload.hip = parseFloat(manualHip);
@@ -363,201 +564,456 @@ export default function FitCheckMemberA() {
     setRecommendation(null);
   };
 
-  return (
-    <main style={{ maxWidth: "1280px", margin: "0 auto", padding: "36px 20px 80px" }}>
-      {/* Top Header */}
-      <header style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "20px" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-            <span className="badge badge-info">Member A Contribution</span>
-            <span className={`badge ${apiConnected ? "badge-success" : "badge-info"}`}>
-              {apiConnected ? "API Connected (8000)" : "Backend Offline / Demo Mode"}
-            </span>
+  // =========================================================================
+  // GATE 1: AUTHENTICATION INITIALIZATION CHECK
+  // =========================================================================
+  if (authChecking) {
+    return (
+      <div className="auth-container">
+        <div style={{ textAlign: "center", color: "var(--text-secondary)" }}>
+          <RefreshCw size={32} className="animate-spin" style={{ margin: "0 auto 14px", color: "var(--accent-plum)" }} />
+          <p style={{ fontWeight: 600, fontSize: "1rem" }}>Restoring secure FitCheck session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // GATE 2: DEDICATED LOGIN / REGISTRATION ENTRY POINT
+  // =========================================================================
+  if (!authToken || !currentUser) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          {/* Brand Header */}
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            <div
+              style={{
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "var(--accent-plum-light)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "12px",
+              }}
+            >
+              <Sparkles size={28} color="var(--accent-plum)" />
+            </div>
+            <h1
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: 850,
+                color: "var(--text-primary)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              FitCheck <span style={{ color: "var(--accent-plum)" }}>— Fit Intelligence</span>
+            </h1>
+            <p
+              style={{
+                fontSize: "0.88rem",
+                color: "var(--text-secondary)",
+                marginTop: "6px",
+                lineHeight: 1.5,
+              }}
+            >
+              Cross-Brand Apparel Fit Recommender. Please sign in to access your empirical sizing calibration, body profile, and reviews.
+            </p>
           </div>
-          <h1 style={{ fontSize: "2.4rem", fontWeight: 800, letterSpacing: "-0.03em" }}>
-            FitCheck <span className="gradient-text">Fit Intelligence</span>
+
+          {/* Mode Tabs: Sign In / Create Account */}
+          <div style={{ display: "flex", borderBottom: "1px solid var(--border-color)", marginBottom: "20px" }}>
+            <button
+              type="button"
+              onClick={() => { setAuthMode("login"); setAuthError(null); }}
+              className={`auth-tab-btn ${authMode === "login" ? "active" : ""}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode("register"); setAuthError(null); }}
+              className={`auth-tab-btn ${authMode === "register" ? "active" : ""}`}
+            >
+              Create Account
+            </button>
+          </div>
+
+          {/* Error Banner */}
+          {authError && (
+            <div
+              style={{
+                padding: "12px 14px",
+                borderRadius: "var(--radius-sm)",
+                marginBottom: "18px",
+                fontSize: "0.85rem",
+                background: "var(--danger-bg)",
+                color: "var(--danger)",
+                border: "1px solid var(--danger-border)",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "8px",
+              }}
+            >
+              <AlertCircle size={16} style={{ marginTop: "2px", flexShrink: 0 }} />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          {/* Auth Form */}
+          <form
+            onSubmit={authMode === "login" ? (e) => handleLogin(e) : handleRegister}
+            style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+          >
+            {authMode === "register" && (
+              <div>
+                <label
+                  htmlFor="auth-register-name"
+                  style={{
+                    display: "block",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    color: "var(--text-secondary)",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Full Name
+                </label>
+                <input
+                  id="auth-register-name"
+                  type="text"
+                  required
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                  placeholder="e.g. Priya Sharma"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: "0.9rem",
+                  }}
+                />
+              </div>
+            )}
+
+            <div>
+              <label
+                htmlFor="auth-email"
+                style={{
+                  display: "block",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                  marginBottom: "4px",
+                }}
+              >
+                Email Address
+              </label>
+              <input
+                id="auth-email"
+                type="email"
+                required
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "0.9rem",
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="auth-password"
+                style={{
+                  display: "block",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                  marginBottom: "4px",
+                }}
+              >
+                Password
+              </label>
+              <input
+                id="auth-password"
+                type="password"
+                required
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "0.9rem",
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              style={{
+                padding: "12px",
+                background: "var(--accent-plum)",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                cursor: authLoading ? "not-allowed" : "pointer",
+                marginTop: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              {authLoading ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" />
+                  <span>Authenticating...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn size={16} />
+                  <span>{authMode === "login" ? "Sign In to FitCheck" : "Create Account"}</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Pre-Seeded Test Accounts for Viva Grading */}
+          <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--border-color)" }}>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                marginBottom: "10px",
+              }}
+            >
+              Evaluation Test Accounts (Click to Fill Credentials)
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {DEMO_PERSONAS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setAuthEmail(p.email);
+                    setAuthPassword("password123");
+                    setAuthMode("login");
+                    setAuthError(null);
+                  }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-sm)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>{p.name}</strong>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{p.note}</div>
+                  </div>
+                  <span
+                    className={p.role === "ADMIN" ? "badge badge-rose" : "badge badge-info"}
+                    style={{ fontSize: "0.68rem" }}
+                  >
+                    {p.role}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // GATE 3: AUTHENTICATED APPLICATION
+  // =========================================================================
+  return (
+    <main style={{ maxWidth: "1240px", margin: "0 auto", padding: "28px 20px 80px" }}>
+      {/* Authenticated Application Header */}
+      <header
+        style={{
+          marginBottom: "24px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: "2.1rem",
+              fontWeight: 850,
+              letterSpacing: "-0.03em",
+              color: "var(--text-primary)",
+            }}
+          >
+            FitCheck <span className="gradient-text">— Fit Intelligence</span>
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", marginTop: "4px" }}>
-            Cross-Brand Apparel Fit Recommender &bull; Relational Catalogue, Body Profiles &amp; Deterministic Tolerance Scoring
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginTop: "2px" }}>
+            Cross-Brand Apparel Fit Recommender &bull; Relational Catalogue, Body Profiles &amp; Deterministic Sizing
           </p>
         </div>
 
-        {/* Demo User Switcher */}
-        <div className="glass-panel" style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>
-            Active Demo Persona (Viva Evaluation)
-          </label>
-          <select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(parseInt(e.target.value))}
+        {/* Authenticated User Session Pill */}
+        <div
+          className="glass-panel"
+          style={{
+            padding: "10px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <strong style={{ fontSize: "0.92rem", color: "var(--text-primary)" }}>
+                {currentUser.name}
+              </strong>
+              <span
+                className={currentUser.role === "ADMIN" ? "badge badge-rose" : "badge badge-success"}
+                style={{ fontSize: "0.68rem" }}
+              >
+                {currentUser.role}
+              </span>
+            </div>
+            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{currentUser.email}</div>
+          </div>
+
+          <button
+            onClick={handleLogout}
             style={{
-              background: "var(--bg-secondary)",
-              color: "var(--text-primary)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "7px 12px",
+              background: "transparent",
+              color: "var(--text-secondary)",
               border: "1px solid var(--border-color)",
-              padding: "8px 12px",
               borderRadius: "var(--radius-sm)",
-              fontSize: "0.9rem",
+              fontSize: "0.82rem",
+              fontWeight: 600,
               cursor: "pointer",
-              outline: "none",
             }}
           >
-            {DEMO_USERS.map((u) => (
-              <option key={u.id} value={u.id}>
-                User #{u.id}: {u.name}
-              </option>
-            ))}
-          </select>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "2px" }}>
-            <span style={{ fontSize: "0.75rem", color: "var(--accent-purple)" }}>
-              {DEMO_USERS.find((u) => u.id === selectedUserId)?.note}
-            </span>
-            <span style={{ fontSize: "0.75rem", color: authToken ? "#10b981" : "#94a3b8" }}>
-              {authToken ? "✓ Bearer JWT Active" : "• Guest / Unauthenticated"}
-            </span>
-          </div>
+            <LogOut size={14} />
+            Sign Out
+          </button>
         </div>
       </header>
 
-      {/* Offline Alert if backend is unreachable */}
+      {/* Contextual Offline Alert if backend is unreachable */}
       {apiConnected === false && (
         <div
           style={{
-            background: "rgba(245, 158, 11, 0.15)",
-            border: "1px solid rgba(245, 158, 11, 0.4)",
+            background: "var(--warning-bg)",
+            border: "1px solid var(--warning-border)",
             borderRadius: "var(--radius-sm)",
-            padding: "14px 20px",
-            marginBottom: "28px",
+            padding: "12px 18px",
+            marginBottom: "24px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            color: "#fde68a",
-            fontSize: "0.9rem",
+            color: "var(--warning)",
+            fontSize: "0.88rem",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <AlertCircle size={20} color="#f59e0b" />
+            <AlertCircle size={18} color="var(--warning)" />
             <span>
-              Backend is not connected on <code>http://localhost:8000</code>. Run <code>uvicorn backend.app.main:app --reload</code> in terminal to enable live MySQL queries.
+              Backend API is not currently connected at <code>http://localhost:8000</code>. Offline demo fallback active.
             </span>
           </div>
           <button
             onClick={checkHealth}
             style={{
-              background: "rgba(245, 158, 11, 0.3)",
+              background: "var(--accent-plum)",
               border: "none",
               color: "#fff",
-              padding: "6px 14px",
+              padding: "6px 12px",
               borderRadius: "4px",
               cursor: "pointer",
               fontSize: "0.8rem",
               fontWeight: 600,
             }}
           >
-            Retry Ping
+            Reconnect
           </button>
         </div>
       )}
 
       {/* Main Navigation Tabs */}
-      <nav style={{ display: "flex", gap: "12px", marginBottom: "32px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px", flexWrap: "wrap" }}>
+      <nav className="nav-tabs-container" role="tablist" aria-label="Main Navigation">
         <button
+          role="tab"
+          aria-selected={activeTab === "recommend"}
           onClick={() => setActiveTab("recommend")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            background: activeTab === "recommend" ? "var(--accent-gradient)" : "transparent",
-            color: activeTab === "recommend" ? "#fff" : "var(--text-secondary)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-          }}
+          className={`nav-tab-btn ${activeTab === "recommend" ? "active" : ""}`}
         >
-          <Sparkles size={18} />
+          <Sparkles size={16} />
           Cross-Brand Recommendation
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === "profile"}
           onClick={() => setActiveTab("profile")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            background: activeTab === "profile" ? "var(--accent-gradient)" : "transparent",
-            color: activeTab === "profile" ? "#fff" : "var(--text-secondary)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-          }}
+          className={`nav-tab-btn ${activeTab === "profile" ? "active" : ""}`}
         >
-          <UserIcon size={18} />
+          <UserIcon size={16} />
           Body Profile
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === "purchases"}
           onClick={() => setActiveTab("purchases")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            background: activeTab === "purchases" ? "var(--accent-gradient)" : "transparent",
-            color: activeTab === "purchases" ? "#fff" : "var(--text-secondary)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-          }}
+          className={`nav-tab-btn ${activeTab === "purchases" ? "active" : ""}`}
         >
-          <ShoppingBag size={18} />
+          <ShoppingBag size={16} />
           Purchase History &amp; Fit Outcomes
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === "catalogue"}
           onClick={() => setActiveTab("catalogue")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            background: activeTab === "catalogue" ? "var(--accent-gradient)" : "transparent",
-            color: activeTab === "catalogue" ? "#fff" : "var(--text-secondary)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-          }}
+          className={`nav-tab-btn ${activeTab === "catalogue" ? "active" : ""}`}
         >
-          <Layers size={18} />
+          <Layers size={16} />
           Garment Catalogue &amp; Measurements
         </button>
+
         <button
+          role="tab"
+          aria-selected={activeTab === "reviews"}
           onClick={() => setActiveTab("reviews")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            background:
-              activeTab === "reviews" ? "var(--accent-gradient)" : "transparent",
-            color:
-              activeTab === "reviews" ? "#fff" : "var(--text-secondary)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-          }}
+          className={`nav-tab-btn ${activeTab === "reviews" ? "active" : ""}`}
         >
-          Fit Reviews & Semantic Search
+          <MessageSquare size={16} />
+          Fit Reviews &amp; Semantic Search
         </button>
       </nav>
 
@@ -565,22 +1021,24 @@ export default function FitCheckMemberA() {
       {/* TAB 1: CROSS-BRAND RECOMMENDATION ENGINE                       */}
       {/* ============================================================== */}
       {activeTab === "recommend" && (
-        <section style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: "28px", alignItems: "start" }}>
+        <section className="recommendation-grid">
           {/* Target Garment Selection Panel */}
           <div className="glass-panel" style={{ padding: "28px" }}>
             <h2 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-              <Ruler size={20} color="var(--accent-purple)" />
+              <Ruler size={20} color="var(--accent-plum)" />
               1. Select Target Garment
             </h2>
 
             {/* Brand Filter */}
             <div style={{ marginBottom: "18px" }}>
-              <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "6px" }}>
+              <label htmlFor="target-brand" style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "6px" }}>
                 Target Brand
               </label>
               <select
+                id="target-brand"
                 value={selectedBrandId || ""}
                 onChange={(e) => handleBrandChange(parseInt(e.target.value))}
+                disabled={brandsLoading}
                 style={{
                   width: "100%",
                   background: "var(--bg-secondary)",
@@ -591,6 +1049,10 @@ export default function FitCheckMemberA() {
                   fontSize: "0.95rem",
                 }}
               >
+                {brandsLoading && <option value="" disabled>Loading brands from catalogue...</option>}
+                {!brandsLoading && brands.length === 0 && (
+                  <option value="" disabled>{brandError || "No brands available"}</option>
+                )}
                 {brands.map((b) => (
                   <option key={b.brand_id} value={b.brand_id}>
                     {b.brand_name} ({b.sizing_system})
@@ -601,12 +1063,14 @@ export default function FitCheckMemberA() {
 
             {/* Garment Selector */}
             <div style={{ marginBottom: "22px" }}>
-              <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "6px" }}>
+              <label htmlFor="target-garment" style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "6px" }}>
                 Target Garment
               </label>
               <select
+                id="target-garment"
                 value={selectedGarmentId || ""}
                 onChange={(e) => setSelectedGarmentId(parseInt(e.target.value))}
+                disabled={garmentsLoading || brandsLoading}
                 style={{
                   width: "100%",
                   background: "var(--bg-secondary)",
@@ -617,6 +1081,10 @@ export default function FitCheckMemberA() {
                   fontSize: "0.95rem",
                 }}
               >
+                {garmentsLoading && <option value="" disabled>Loading garments for selected brand...</option>}
+                {!garmentsLoading && garments.length === 0 && (
+                  <option value="" disabled>No garments found for this brand</option>
+                )}
                 {garments.map((g) => (
                   <option key={g.garment_id} value={g.garment_id}>
                     {g.garment_name} &bull; {g.garment_category} ({g.fit_type})
@@ -627,10 +1095,11 @@ export default function FitCheckMemberA() {
 
             {/* Target Garment Sizing Preview */}
             {garmentDetail && (
-              <div style={{ background: "rgba(0,0,0,0.25)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "24px" }}>
+              <div style={{ background: "var(--bg-card-subtle)", border: "1px solid var(--border-color)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{garmentDetail.garment_name}</span>
-                  <span className="badge badge-info">Integrated FitCheck Demo</span>                </div>
+                  <span className="badge badge-info">Active Catalogue Item</span>
+                </div>
                 <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "12px" }}>
                   {garmentDetail.description || "No description available."}
                 </p>
@@ -643,9 +1112,9 @@ export default function FitCheckMemberA() {
             {/* Manual Dimension Overrides (Optional) */}
             <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "18px", marginBottom: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
-                <Info size={16} color="var(--accent-purple)" />
+                <Info size={16} color="var(--accent-plum)" />
                 <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>
-                  Optional Manual Overrides (Guest Mode)
+                  Optional Manual Dimension Overrides
                 </span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -695,7 +1164,7 @@ export default function FitCheckMemberA() {
               style={{
                 width: "100%",
                 padding: "14px",
-                background: "var(--accent-gradient)",
+                background: "var(--accent-plum)",
                 color: "#fff",
                 border: "none",
                 borderRadius: "var(--radius-sm)",
@@ -706,7 +1175,7 @@ export default function FitCheckMemberA() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "10px",
-                boxShadow: "0 4px 20px var(--accent-glow)",
+                boxShadow: "0 4px 16px var(--accent-glow)",
               }}
             >
               {isRecommending ? (
@@ -726,7 +1195,7 @@ export default function FitCheckMemberA() {
           {/* Recommendation Results Panel */}
           <div>
             {recError && (
-              <div className="glass-panel" style={{ padding: "24px", borderColor: "rgba(239, 68, 68, 0.4)", marginBottom: "20px" }}>
+              <div className="glass-panel" style={{ padding: "24px", borderColor: "var(--danger-border)", marginBottom: "20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--danger)" }}>
                   <AlertCircle size={24} />
                   <div>
@@ -744,8 +1213,8 @@ export default function FitCheckMemberA() {
                   className="glass-panel"
                   style={{
                     padding: "32px",
-                    background: "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%)",
-                    border: "1px solid rgba(99, 102, 241, 0.4)",
+                    background: "var(--bg-card-subtle)",
+                    border: "1px solid var(--border-color)",
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
@@ -759,7 +1228,7 @@ export default function FitCheckMemberA() {
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--accent-purple)" }}>
+                      <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--accent-plum)" }}>
                         {recommendation.primary_recommendation?.match_score}%
                       </div>
                       <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
@@ -769,8 +1238,8 @@ export default function FitCheckMemberA() {
                   </div>
 
                   {/* Verdict & Explanation */}
-                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "16px" }}>
-                    <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "#34d399", marginBottom: "6px" }}>
+                  <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "16px" }}>
+                    <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "var(--accent-sage-dark)", marginBottom: "6px" }}>
                       Verdict: {recommendation.primary_recommendation?.fit_verdict}
                     </div>
                     <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
@@ -792,7 +1261,7 @@ export default function FitCheckMemberA() {
 
                   {/* Caveats */}
                   {recommendation.caveats?.length > 0 && (
-                    <div style={{ fontSize: "0.8rem", color: "#fbbf24", display: "flex", alignItems: "center", gap: "8px", marginTop: "10px" }}>
+                    <div style={{ fontSize: "0.8rem", color: "var(--warning)", display: "flex", alignItems: "center", gap: "8px", marginTop: "10px" }}>
                       <Info size={16} />
                       <span>{recommendation.caveats.join("; ")}</span>
                     </div>
@@ -819,16 +1288,16 @@ export default function FitCheckMemberA() {
                         <tr
                           key={s.garment_size_id}
                           style={{
-                            borderBottom: "1px solid rgba(255,255,255,0.05)",
-                            background: s.rank === 1 ? "rgba(99, 102, 241, 0.08)" : "transparent",
+                            borderBottom: "1px solid var(--border-color)",
+                            background: s.rank === 1 ? "var(--accent-plum-light)" : "transparent",
                           }}
                         >
-                          <td style={{ padding: "12px 8px", fontWeight: 700, color: s.rank === 1 ? "var(--accent-purple)" : "inherit" }}>
+                          <td style={{ padding: "12px 8px", fontWeight: 700, color: s.rank === 1 ? "var(--accent-plum)" : "inherit" }}>
                             #{s.rank}
                           </td>
                           <td style={{ padding: "12px 8px", fontWeight: 600 }}>{s.size_label}</td>
                           <td style={{ padding: "12px 8px" }}>
-                            <span style={{ fontWeight: 700, color: s.match_score >= 70 ? "#34d399" : s.match_score >= 50 ? "#fbbf24" : "#f87171" }}>
+                            <span style={{ fontWeight: 700, color: s.match_score >= 70 ? "var(--accent-sage-dark)" : s.match_score >= 50 ? "var(--warning)" : "var(--danger)" }}>
                               {s.match_score}%
                             </span>
                           </td>
@@ -864,14 +1333,14 @@ export default function FitCheckMemberA() {
                   minHeight: "380px",
                 }}
               >
-                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(99, 102, 241, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
-                  <Sparkles size={32} color="var(--accent-purple)" />
+                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--accent-plum-light)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
+                  <Sparkles size={32} color="var(--accent-plum)" />
                 </div>
                 <h3 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "8px" }}>
                   Ready to Calibrate Size
                 </h3>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", maxWidth: "440px", lineHeight: 1.6 }}>
-                  Select an unfamiliar target brand and garment on the left, then click <strong>Calculate Recommended Size</strong> to synthesize reference fit evidence from user #{selectedUserId}.
+                  Select an unfamiliar target brand and garment on the left, then click <strong>Calculate Recommended Size</strong> to synthesize reference fit evidence from {currentUser?.name || "your profile"}.
                 </p>
               </div>
             )}
@@ -888,7 +1357,7 @@ export default function FitCheckMemberA() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div>
                 <h2 style={{ fontSize: "1.4rem", fontWeight: 700 }}>
-                  Body Profile &bull; User #{selectedUserId}
+                  Body Profile &bull; {currentUser?.name || "Account"} (ID #{currentUser?.user_id})
                 </h2>
                 <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "4px" }}>
                   Anatomical dimensions in centimeters with database-level integrity constraints.
@@ -904,9 +1373,9 @@ export default function FitCheckMemberA() {
                   borderRadius: "var(--radius-sm)",
                   marginBottom: "20px",
                   fontSize: "0.9rem",
-                  background: profileSaveStatus.startsWith("Error") ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                  color: profileSaveStatus.startsWith("Error") ? "var(--danger)" : "var(--success)",
-                  border: `1px solid ${profileSaveStatus.startsWith("Error") ? "rgba(239, 68, 68, 0.3)" : "rgba(16, 185, 129, 0.3)"}`,
+                  background: profileSaveStatus.startsWith("Error") ? "var(--danger-bg)" : "var(--accent-sage-light)",
+                  color: profileSaveStatus.startsWith("Error") ? "var(--danger)" : "var(--accent-sage-dark)",
+                  border: `1px solid ${profileSaveStatus.startsWith("Error") ? "var(--danger-border)" : "var(--accent-sage-border)"}`,
                 }}
               >
                 {profileSaveStatus}
@@ -1047,7 +1516,7 @@ export default function FitCheckMemberA() {
                 type="submit"
                 style={{
                   padding: "12px 28px",
-                  background: "var(--accent-gradient)",
+                  background: "var(--accent-plum)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "var(--radius-sm)",
@@ -1073,7 +1542,7 @@ export default function FitCheckMemberA() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <div>
                 <h2 style={{ fontSize: "1.3rem", fontWeight: 700 }}>
-                  Purchase History &amp; Fit Outcomes &bull; User #{selectedUserId}
+                  Purchase History &amp; Fit Outcomes &bull; {currentUser?.name || "Account"} (ID #{currentUser?.user_id})
                 </h2>
                 <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "4px" }}>
                   Verified historical purchases utilized as empirical evidence in cross-brand sizing.
@@ -1102,28 +1571,28 @@ export default function FitCheckMemberA() {
                 </thead>
                 <tbody>
                   {purchases.map((p) => (
-                    <tr key={p.purchase_id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <tr key={p.purchase_id} style={{ borderBottom: "1px solid var(--border-color)" }}>
                       <td style={{ padding: "12px 8px", color: "var(--text-muted)" }}>#{p.purchase_id}</td>
                       <td style={{ padding: "12px 8px" }}>{p.purchase_date}</td>
                       <td style={{ padding: "12px 8px", fontWeight: 600 }}>{p.brand_name || "N/A"}</td>
                       <td style={{ padding: "12px 8px" }}>{p.garment_name || "N/A"}</td>
-                      <td style={{ padding: "12px 8px", fontWeight: 700, color: "var(--accent-purple)" }}>
+                      <td style={{ padding: "12px 8px", fontWeight: 700, color: "var(--accent-plum)" }}>
                         {p.size_label || `Size ID ${p.garment_size_id}`}
                       </td>
                       <td style={{ padding: "12px 8px" }}>
                         <span
                           className="badge"
                           style={{
-                            background: p.outcome === "KEPT" ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
-                            color: p.outcome === "KEPT" ? "var(--success)" : "var(--danger)",
-                            border: `1px solid ${p.outcome === "KEPT" ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
+                            background: p.outcome === "KEPT" ? "var(--accent-sage-light)" : "var(--danger-bg)",
+                            color: p.outcome === "KEPT" ? "var(--accent-sage-dark)" : "var(--danger)",
+                            border: `1px solid ${p.outcome === "KEPT" ? "var(--accent-sage-border)" : "var(--danger-border)"}`,
                           }}
                         >
                           {p.outcome}
                         </span>
                       </td>
                       <td style={{ padding: "12px 8px" }}>
-                        <span style={{ fontWeight: 600, color: p.fit_satisfaction === "GOOD" ? "#34d399" : p.fit_satisfaction === "AVERAGE" ? "#fbbf24" : "#f87171" }}>
+                        <span style={{ fontWeight: 600, color: p.fit_satisfaction === "GOOD" ? "var(--accent-sage-dark)" : p.fit_satisfaction === "AVERAGE" ? "var(--warning)" : "var(--danger)" }}>
                           {p.fit_satisfaction || "N/A"}
                         </span>
                       </td>
@@ -1141,21 +1610,77 @@ export default function FitCheckMemberA() {
               Record New Purchase (DML Verification)
             </h3>
             {purchaseStatus && (
-              <div style={{ padding: "10px 14px", borderRadius: "var(--radius-sm)", marginBottom: "16px", fontSize: "0.85rem", background: "rgba(99, 102, 241, 0.15)", color: "var(--accent-purple)" }}>
+              <div style={{ padding: "10px 14px", borderRadius: "var(--radius-sm)", marginBottom: "16px", fontSize: "0.85rem", background: "var(--accent-plum-light)", color: "var(--accent-plum)", border: "1px solid var(--accent-plum-border)" }}>
                 {purchaseStatus}
               </div>
             )}
             <form onSubmit={handleCreatePurchase} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {/* Cascaded Catalogue Selectors: Brand -> Garment -> Size */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label htmlFor="purchase-brand-select" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+                    1. Brand
+                  </label>
+                  <select
+                    id="purchase-brand-select"
+                    value={purchaseBrandId || ""}
+                    onChange={(e) => handlePurchaseBrandChange(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      background: "var(--bg-secondary)",
+                      border: "1px solid var(--border-color)",
+                      color: "var(--text-primary)",
+                      padding: "8px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    {brands.map((b) => (
+                      <option key={b.brand_id} value={b.brand_id}>
+                        {b.brand_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="purchase-garment-select" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+                    2. Garment Model
+                  </label>
+                  <select
+                    id="purchase-garment-select"
+                    value={purchaseGarmentId || ""}
+                    onChange={(e) => handlePurchaseGarmentChange(Number(e.target.value))}
+                    disabled={purchaseGarments.length === 0}
+                    style={{
+                      width: "100%",
+                      background: "var(--bg-secondary)",
+                      border: "1px solid var(--border-color)",
+                      color: "var(--text-primary)",
+                      padding: "8px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    {purchaseGarments.map((g) => (
+                      <option key={g.garment_id} value={g.garment_id}>
+                        {g.garment_name} ({g.fit_type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
-                  Garment Size ID (from Catalogue, e.g. 1 to 70)
+                <label htmlFor="purchase-size-input" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+                  3. Size Label &bull; Foreign Key <code>garment_size_id</code>
                 </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 3 (Levis sz 28) or 18 (Zara sz 38)"
+                <select
+                  id="purchase-size-input"
                   value={newPurchaseForm.garment_size_id}
                   onChange={(e) => setNewPurchaseForm({ ...newPurchaseForm, garment_size_id: e.target.value })}
                   required
+                  disabled={purchaseSizes.length === 0}
                   style={{
                     width: "100%",
                     background: "var(--bg-secondary)",
@@ -1163,16 +1688,31 @@ export default function FitCheckMemberA() {
                     color: "var(--text-primary)",
                     padding: "8px 12px",
                     borderRadius: "var(--radius-sm)",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
                   }}
-                />
+                >
+                  <option value="">Select size...</option>
+                  {purchaseSizes.map((s: any) => (
+                    <option key={s.garment_size_id} value={s.garment_size_id}>
+                      Size {s.size_label} &mdash; (Catalogue ID #{s.garment_size_id})
+                    </option>
+                  ))}
+                </select>
+                {newPurchaseForm.garment_size_id && (
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                    Resolved Catalogue Key: <code>PURCHASE.garment_size_id = {newPurchaseForm.garment_size_id}</code>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+                  <label htmlFor="purchase-outcome" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
                     Outcome
                   </label>
                   <select
+                    id="purchase-outcome"
                     value={newPurchaseForm.outcome}
                     onChange={(e) => setNewPurchaseForm({ ...newPurchaseForm, outcome: e.target.value })}
                     style={{
@@ -1191,10 +1731,11 @@ export default function FitCheckMemberA() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+                  <label htmlFor="purchase-satisfaction" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
                     Fit Satisfaction
                   </label>
                   <select
+                    id="purchase-satisfaction"
                     value={newPurchaseForm.fit_satisfaction}
                     onChange={(e) => setNewPurchaseForm({ ...newPurchaseForm, fit_satisfaction: e.target.value })}
                     style={{
@@ -1217,7 +1758,7 @@ export default function FitCheckMemberA() {
                 type="submit"
                 style={{
                   padding: "10px 20px",
-                  background: "var(--accent-gradient)",
+                  background: "var(--accent-plum)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "var(--radius-sm)",
@@ -1257,7 +1798,7 @@ export default function FitCheckMemberA() {
                 <div
                   key={g.garment_id}
                   style={{
-                    background: "rgba(0,0,0,0.25)",
+                    background: "var(--bg-card-subtle)",
                     border: "1px solid var(--border-color)",
                     borderRadius: "var(--radius-sm)",
                     padding: "20px",
@@ -1267,7 +1808,7 @@ export default function FitCheckMemberA() {
                     <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>{g.garment_name}</h3>
                     <span className="badge badge-info">{g.garment_category}</span>
                   </div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--accent-purple)", marginBottom: "8px" }}>
+                  <div style={{ fontSize: "0.85rem", color: "var(--accent-plum)", marginBottom: "8px" }}>
                     {g.brand?.brand_name || `Brand #${g.brand_id}`} &bull; Fit: {g.fit_type}
                   </div>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "14px" }}>
@@ -1280,9 +1821,9 @@ export default function FitCheckMemberA() {
                       setActiveTab("recommend");
                     }}
                     style={{
-                      background: "rgba(99, 102, 241, 0.15)",
-                      border: "1px solid rgba(99, 102, 241, 0.3)",
-                      color: "var(--accent-purple)",
+                      background: "var(--accent-plum-light)",
+                      border: "1px solid var(--accent-plum-border)",
+                      color: "var(--accent-plum)",
                       padding: "6px 12px",
                       borderRadius: "4px",
                       fontSize: "0.8rem",
@@ -1301,7 +1842,13 @@ export default function FitCheckMemberA() {
           </div>
         </section>
       )}
-      {activeTab === "reviews" && <MemberBPanel />}
+      {activeTab === "reviews" && (
+        <MemberBPanel
+          token={authToken}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+        />
+      )}
     </main>
   );
 }

@@ -49,23 +49,40 @@ DBMS-mini--FitCheck/
 │   └── src/app/                       # App Router pages, layout, and globals.css
 │
 ├── database/                          # Relational Database Artifacts
-│   ├── fitcheck_setup.sql             # Authoritative MySQL 8.0 DDL setup script (preserved)
+│   ├── fitcheck_ddl.sql               # Standalone canonical DDL & DDL demonstrations (CREATE, ALTER, DROP)
+│   ├── fitcheck_dml.sql               # Standalone DML operations, 4-way joins, aggregates, subqueries, recursive CTE
+│   ├── fitcheck_setup.sql             # MySQL 8.0 DDL setup script (preserved canonical)
 │   ├── queries/                       # Documented SQL queries & advanced database concepts
 │   │   ├── advanced_queries.sql       # Multi-table JOINs, GROUP BY/HAVING, correlated subqueries, CTEs
 │   │   ├── advanced_concepts.sql      # Stored procedures, functions, triggers, views, transactions
+│   │   ├── vector_commands.redis      # Redis CLI commands for vector index and RUD operations
 │   │   └── rbac_setup.sql             # MySQL database-level roles & least-privilege grants
 │   └── seeds/                         # Seeding guide and scripts for realistic sizing data
 │
-├── vector-search/                     # Vector Database Specifications
-│   ├── README.md                      # Architecture, embedding model (all-MiniLM-L6-v2), HNSW specs, RUD operations
+├── vector-search/                     # Vector Database Specifications & Live Demo
+│   ├── README.md                      # Architecture, embedding model (all-MiniLM-L6-v2), HNSW specs
+│   ├── demo_vector_rud.py             # Live runnable Python script verifying Vector RUD operations
 │   └── schema.py                      # Redis Stack HNSW vector index definition & query helper
 │
 ├── docs/                              # Project Documentation & Viva Defense
+│   ├── FINAL_RUBRIC_COMPLIANCE_MATRIX.md # Line-by-line audit across all 14 rubric items & 17 requirements
+│   ├── FINAL_DEMONSTRATION_GUIDE.md   # Step-by-step viva presentation & execution instructions
+│   ├── DDL_DOCUMENTATION.md           # DDL schema, constraints, referential actions, and SHOW CREATE TABLE
+│   ├── DML_AND_QUERIES_DOCUMENTATION.md # DML operations, joins, aggregates, and recursive queries
+│   ├── ADVANCED_SQL_CONCEPTS.md       # Stored procedures, functions, triggers, views, and transactions
+│   ├── NOSQL_VECTOR_DOCUMENTATION.md  # Redis Stack vector schema, HNSW indexing, and RUD lifecycle
+│   ├── AUTHENTICATION_AND_RBAC.md     # Dual-tier security: JWT auth + MySQL engine RBAC
+│   ├── RECOMMENDATION_LOGIC_AUDIT.md  # Recommendation scoring equations, weights, and privacy boundaries
 │   ├── architecture.md                # Detailed component architecture & workflows
-│   ├── schema_documentation.md        # Comprehensive data dictionary, constraints & indexes
+│   ├── schema_documentation.md        # Comprehensive data dictionary, constraints & entity classifications
 │   ├── database_justification.md      # Relational vs Vector polyglot justification for viva defense
-│   ├── rubric_tracking.md             # 14-item rubric tracking checklist mapped to code evidence
 │   ├── diagrams/
+│   │   ├── er_diagram.png             # Print-ready high-resolution Conceptual ER Diagram (PNG)
+│   │   ├── er_diagram.pdf             # Print-ready Conceptual ER Diagram (PDF)
+│   │   ├── er_diagram.svg             # Scalable Vector Graphics ER Diagram
+│   │   ├── relational_schema.png      # Print-ready Relational Schema Diagram (PNG)
+│   │   ├── relational_schema.pdf      # Print-ready Relational Schema Diagram (PDF)
+│   │   ├── relational_schema.svg      # Scalable Vector Graphics Relational Schema
 │   │   └── dbms_mini_v4.drawio        # Canonical Draw.io ER diagram (preserved)
 │   └── requirements/                  # Course requirements & evaluation rubric PDFs
 │       ├── DBMS Level 3 Project Requirements.pdf

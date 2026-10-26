@@ -11,6 +11,7 @@ from backend.app.models import (
     BodyProfile,
     Purchase,
     User,
+    FitReview,
 )
 from backend.app.schemas import (
     RecommendationRequest,
@@ -261,39 +262,120 @@ def compute_size_recommendation(
                 "Examine the dimensional deltas closely."
             )
 
+    # -------------------------------------------------------------------------
+    # Public Customer Fit Reviews for Target Garment
+    # STRICT PRIVACY ENFORCEMENT: Never query or join other users' BODY_PROFILE,
+    # private body measurements, private purchases, or accounts. Only public review data.
+    # -------------------------------------------------------------------------
+    target_reviews = (
+        db.query(FitReview)
+        .join(GarmentSize, FitReview.garment_size_id == GarmentSize.garment_size_id)
+        .filter(GarmentSize.garment_id == target_garment.garment_id)
+        .all()
+    )
+
+    # Map public reviews by garment_size_id
+    reviews_by_size: Dict[int, List[FitReview]] = {}
+    for rev in target_reviews:
+        reviews_by_size.setdefault(rev.garment_size_id, []).append(rev)
+
+    # Score mapping for public review overall_fit
+    REVIEW_FIT_SCORES = {
+        "TRUE_TO_SIZE": 100.0,
+        "SLIGHTLY_SMALL": 75.0,
+        "SLIGHTLY_LARGE": 75.0,
+        "TOO_SMALL": 40.0,
+        "TOO_LARGE": 40.0,
+    }
+
     # Cold start: if insufficient reference data
     if confidence == "INSUFFICIENT_DATA" or not ref_dims:
-        median_idx = len(sizes) // 2
-        median_size = sizes[median_idx]
-        all_ranked = [
-            SizeScoreBreakdown(
-                garment_size_id=s.garment_size_id,
-                size_label=s.size_label,
-                match_score=50.0 if s.garment_size_id == median_size.garment_size_id else 40.0,
-                rank=1 if s.garment_size_id == median_size.garment_size_id else 2,
-                fit_verdict="Catalog Median (Cold Start)",
-                deltas=[],
-                notes=["No user purchase history or body profile found."],
+        if target_reviews:
+            # Cold-start with public community review evidence
+            cold_scored: List[SizeScoreBreakdown] = []
+            for s in sizes:
+                s_revs = reviews_by_size.get(s.garment_size_id, [])
+                if s_revs:
+                    s_scores = [REVIEW_FIT_SCORES.get(r.overall_fit, 60.0) for r in s_revs]
+                    avg_rev_score = round(sum(s_scores) / len(s_scores), 1)
+                    fits = [r.overall_fit for r in s_revs]
+                    consensus_fit = max(set(fits), key=fits.count).replace("_", " ").title()
+                    cold_notes = [f"Public consensus: {consensus_fit} ({len(s_revs)} verified customer review(s))"]
+                    verdict = f"Community: {consensus_fit}"
+                    m_score = avg_rev_score
+                else:
+                    m_score = 50.0
+                    verdict = "Catalog Uncalibrated"
+                    cold_notes = ["No community reviews recorded for this size."]
+
+                cold_scored.append(
+                    SizeScoreBreakdown(
+                        garment_size_id=s.garment_size_id,
+                        size_label=s.size_label,
+                        match_score=m_score,
+                        rank=0,
+                        fit_verdict=verdict,
+                        deltas=[],
+                        notes=cold_notes,
+                    )
+                )
+            cold_scored.sort(key=lambda x: x.match_score, reverse=True)
+            for idx, item in enumerate(cold_scored):
+                item.rank = idx + 1
+
+            primary_cold = cold_scored[0]
+            return RecommendationResponse(
+                target_garment_id=target_garment.garment_id,
+                target_garment_name=target_garment.garment_name,
+                target_brand_name=brand_name,
+                category=target_garment.garment_category,
+                fit_type=target_garment.fit_type,
+                primary_recommendation=primary_cold,
+                top_recommendations=cold_scored[:3],
+                all_sizes_ranked=cold_scored,
+                evidence_sources=[
+                    f"Public Customer Reviews: {len(target_reviews)} verified review(s) for {target_garment.garment_name}",
+                    "Target garment catalogue sizing specifications",
+                ],
+                confidence="LOW",
+                explanation=(
+                    f"Recommended size '{primary_cold.size_label}' based on {len(target_reviews)} public community fit review(s) "
+                    f"and catalogue specs. Personal calibration is unavailable because no personal profile or purchase history was provided."
+                ),
+                caveats=caveats + ["Uncalibrated: Personal measurements not provided. Log your body profile for individualized fit ranking."],
             )
-            for s in sizes
-        ]
-        return RecommendationResponse(
-            target_garment_id=target_garment.garment_id,
-            target_garment_name=target_garment.garment_name,
-            target_brand_name=brand_name,
-            category=target_garment.garment_category,
-            fit_type=target_garment.fit_type,
-            primary_recommendation=all_ranked[0],
-            top_recommendations=all_ranked[:3],
-            all_sizes_ranked=all_ranked,
-            evidence_sources=["Cold-start fallback: median size selected"],
-            confidence="INSUFFICIENT_DATA",
-            explanation=(
-                "No reference measurements were available. Please provide your body profile "
-                "or log past successful purchases to receive calibrated size recommendations."
-            ),
-            caveats=["Recommendation is uncalibrated."],
-        )
+        else:
+            median_idx = len(sizes) // 2
+            median_size = sizes[median_idx]
+            all_ranked = [
+                SizeScoreBreakdown(
+                    garment_size_id=s.garment_size_id,
+                    size_label=s.size_label,
+                    match_score=50.0 if s.garment_size_id == median_size.garment_size_id else 40.0,
+                    rank=1 if s.garment_size_id == median_size.garment_size_id else 2,
+                    fit_verdict="Catalog Median (Cold Start)",
+                    deltas=[],
+                    notes=["No user purchase history or body profile found."],
+                )
+                for s in sizes
+            ]
+            return RecommendationResponse(
+                target_garment_id=target_garment.garment_id,
+                target_garment_name=target_garment.garment_name,
+                target_brand_name=brand_name,
+                category=target_garment.garment_category,
+                fit_type=target_garment.fit_type,
+                primary_recommendation=all_ranked[0],
+                top_recommendations=all_ranked[:3],
+                all_sizes_ranked=all_ranked,
+                evidence_sources=["Cold-start fallback: median catalogue size selected"],
+                confidence="INSUFFICIENT_DATA",
+                explanation=(
+                    "No reference measurements were available. Please provide your body profile "
+                    "or log past successful purchases to receive calibrated size recommendations."
+                ),
+                caveats=caveats + ["Recommendation is uncalibrated."],
+            )
 
     scored_sizes: List[SizeScoreBreakdown] = []
 
@@ -354,7 +436,20 @@ def compute_size_recommendation(
             notes.append("No common dimensional measurements available to compare.")
 
         # Exponential decay scoring function: score = 100 * exp(-delta / 4.0)
-        score = round(max(0.0, min(100.0, 100.0 * math.exp(-effective_delta / 4.0))), 1)
+        base_score = max(0.0, min(100.0, 100.0 * math.exp(-effective_delta / 4.0)))
+
+        # Incorporate public review evidence for this size if present
+        s_reviews = reviews_by_size.get(size_obj.garment_size_id, [])
+        if s_reviews:
+            s_scores = [REVIEW_FIT_SCORES.get(r.overall_fit, 60.0) for r in s_reviews]
+            comm_score = sum(s_scores) / len(s_scores)
+            # Evidence fusion: 85% personalized measurement calibration + 15% public customer consensus
+            score = round(0.85 * base_score + 0.15 * comm_score, 1)
+            fits = [r.overall_fit for r in s_reviews]
+            consensus_fit = max(set(fits), key=fits.count).replace("_", " ").title()
+            notes.append(f"Public consensus: {consensus_fit} ({len(s_reviews)} review(s))")
+        else:
+            score = round(base_score, 1)
 
         # Fit verdict
         if effective_delta <= 1.0:
@@ -387,12 +482,18 @@ def compute_size_recommendation(
 
     primary = scored_sizes[0] if scored_sizes else None
 
+    # Append public review evidence citation if target reviews were evaluated
+    if target_reviews:
+        evidence.append(
+            f"Public Customer Reviews: {len(target_reviews)} verified review(s) analyzed for {target_garment.garment_name}"
+        )
+
     # Construct transparent explanation
     ref_summary = ", ".join([f"{k.capitalize()}: {v}cm" for k, v in ref_dims.items()])
     explanation = (
         f"Recommended size '{primary.size_label}' with a {primary.match_score:.1f}% match score. "
         f"Compared against reference dimensions ({ref_summary}) synthesized from "
-        f"{len(evidence)} verified data point(s)."
+        f"{len(evidence)} verified data source(s)."
     )
 
     return RecommendationResponse(
