@@ -56,7 +56,10 @@ def ensure_vector_index(redis_client=None) -> bool:
             TagField,
             VectorField,
         )
-        from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+        try:
+            from redis.commands.search.index_definition import IndexDefinition, IndexType
+        except ImportError:
+            from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
         try:
             redis_client.ft(INDEX_NAME).info()

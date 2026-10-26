@@ -141,7 +141,7 @@ def test_multi_table_join_review_metadata(db_session):
     assert brand_name == "Levis"
 
 
-def test_semantic_search_endpoint_returns_joined_metadata(client):
+def test_semantic_search_endpoint_returns_joined_metadata(client, monkeypatch):
     """
     Verifies that POST /api/v1/reviews/search uses relational joins to return
     brand, garment, and size context alongside review text and similarity score.
@@ -149,7 +149,7 @@ def test_semantic_search_endpoint_returns_joined_metadata(client):
     token = create_access_token(subject=2, role="USER")
 
     # Seed review via API
-    client.post(
+    create_res = client.post(
         "/api/v1/reviews",
         json={
             "garment_size_id": 3,
@@ -158,6 +158,14 @@ def test_semantic_search_endpoint_returns_joined_metadata(client):
             "review_text": "Waistband fits comfortably with no pinching.",
         },
         headers={"Authorization": f"Bearer {token}"},
+    )
+    assert create_res.status_code == 201
+    rev_id = create_res.json()["review_id"]
+
+    # Mock vector hits to simulate Redis KNN search return for isolated unit testing
+    monkeypatch.setattr(
+        "backend.app.api.v1.endpoints.reviews.search_review_vectors",
+        lambda query_text, k=5, overall_fit_filter=None: [(rev_id, 0.88)],
     )
 
     # Search for fit experience
