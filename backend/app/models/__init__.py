@@ -227,3 +227,14 @@ class FitReview(Base):
 
     user = relationship("User", back_populates="reviews")
     garment_size = relationship("GarmentSize", back_populates="reviews")
+
+
+class ReviewAudit(Base):
+    __tablename__ = "REVIEW_AUDIT"
+
+    audit_id = Column(Integer, primary_key=True, autoincrement=True)
+    review_id = Column(Integer, nullable=False, index=True)
+    action = Column(String(10), nullable=False)
+    user_id = Column(Integer, nullable=True)
+    changed_at = Column(DateTime, nullable=False, server_default=func.now())
+    details = Column(Text, nullable=True)

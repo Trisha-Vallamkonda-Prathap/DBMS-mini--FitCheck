@@ -57,7 +57,7 @@ def db_session():
 
     # Seed deterministic test fixtures
     # 1. Users
-    user1 = User(user_id=1, name="Admin User", email="admin@fitcheck.local", password_hash=get_password_hash("password123"), role="ADMIN")
+    user1 = User(user_id=1, name="Admin User", email="admin@fitcheck.com", password_hash=get_password_hash("password123"), role="ADMIN")
     user2 = User(user_id=2, name="Priya Sharma", email="priya@example.com", password_hash=get_password_hash("password123"), role="USER")
     user3 = User(user_id=3, name="Ananya Rao", email="ananya@example.com", password_hash=get_password_hash("password123"), role="USER")
     user4 = User(user_id=4, name="New User", email="newuser@example.com", password_hash=get_password_hash("password123"), role="USER")
