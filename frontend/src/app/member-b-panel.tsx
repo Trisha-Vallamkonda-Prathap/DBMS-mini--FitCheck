@@ -24,6 +24,14 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "var(--radius-sm)",
 };
 
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: "0.82rem",
+  color: "var(--text-secondary)",
+  marginBottom: "6px",
+  fontWeight: 600,
+};
+
 const buttonStyle: React.CSSProperties = {
   padding: "10px 18px",
   background: "var(--accent-gradient)",
@@ -290,7 +298,7 @@ export default function MemberBPanel() {
   const fetchAuditLogs = async () => {
     if (!token) return;
 
-    setAuditStatus("Loading admin audit trail...");
+    setAuditStatus("Loading review activity audit trail...");
 
     const res = await fetch(`${API_BASE}/admin/audit-logs`, {
       headers: authHeaders(),
@@ -406,32 +414,51 @@ export default function MemberBPanel() {
               }}
             >
               {authMode === "register" && (
-                <input
-                  type="text"
-                  value={registerName}
-                  onChange={(e) => setRegisterName(e.target.value)}
-                  placeholder="Name"
-                  style={inputStyle}
-                />
+                <div>
+                  <label htmlFor="register-name" style={labelStyle}>
+                    Name
+                  </label>
+                  <input
+                    id="register-name"
+                    type="text"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    placeholder="Enter your name"
+                    style={inputStyle}
+                    required
+                  />
+                </div>
               )}
 
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                style={inputStyle}
-                required
-              />
+              <div>
+                <label htmlFor="auth-email" style={labelStyle}>
+                  Email
+                </label>
+                <input
+                  id="auth-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  style={inputStyle}
+                  required
+                />
+              </div>
 
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                style={inputStyle}
-                required
-              />
+              <div>
+                <label htmlFor="auth-password" style={labelStyle}>
+                  Password
+                </label>
+                <input
+                  id="auth-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  style={inputStyle}
+                  required
+                />
+              </div>
 
               <button type="submit" style={buttonStyle}>
                 {authMode === "login" ? "Login" : "Register"}
@@ -522,100 +549,144 @@ export default function MemberBPanel() {
               gap: "14px",
             }}
           >
-            <input
-              type="number"
-              min="1"
-              max="70"
-              value={form.garment_size_id}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  garment_size_id: e.target.value,
-                })
-              }
-              placeholder="Garment Size ID"
-              style={inputStyle}
-            />
+            <div>
+              <label htmlFor="garment-size-id" style={labelStyle}>
+                Garment Size ID
+              </label>
+              <input
+                id="garment-size-id"
+                type="number"
+                min="1"
+                max="70"
+                value={form.garment_size_id}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    garment_size_id: e.target.value,
+                  })
+                }
+                placeholder="e.g. 3"
+                style={inputStyle}
+                required
+              />
+            </div>
 
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "12px",
+                gap: "14px",
               }}
             >
-              <select
-                value={form.overall_fit}
-                onChange={(e) =>
-                  setForm({ ...form, overall_fit: e.target.value })
-                }
-                style={inputStyle}
-              >
-                <option>TOO_SMALL</option>
-                <option>SLIGHTLY_SMALL</option>
-                <option>TRUE_TO_SIZE</option>
-                <option>SLIGHTLY_LARGE</option>
-                <option>TOO_LARGE</option>
-              </select>
+              <div>
+                <label htmlFor="overall-fit" style={labelStyle}>
+                  Overall Fit
+                </label>
+                <select
+                  id="overall-fit"
+                  value={form.overall_fit}
+                  onChange={(e) =>
+                    setForm({ ...form, overall_fit: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="TOO_SMALL">Too Small</option>
+                  <option value="SLIGHTLY_SMALL">Slightly Small</option>
+                  <option value="TRUE_TO_SIZE">True to Size</option>
+                  <option value="SLIGHTLY_LARGE">Slightly Large</option>
+                  <option value="TOO_LARGE">Too Large</option>
+                </select>
+              </div>
 
-              <select
-                value={form.waist_fit}
-                onChange={(e) =>
-                  setForm({ ...form, waist_fit: e.target.value })
-                }
-                style={inputStyle}
-              >
-                <option>TIGHT</option>
-                <option>GOOD</option>
-                <option>LOOSE</option>
-              </select>
+              <div>
+                <label htmlFor="waist-fit" style={labelStyle}>
+                  Waist Fit
+                </label>
+                <select
+                  id="waist-fit"
+                  value={form.waist_fit}
+                  onChange={(e) =>
+                    setForm({ ...form, waist_fit: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="TIGHT">Tight</option>
+                  <option value="GOOD">Good</option>
+                  <option value="LOOSE">Loose</option>
+                </select>
+              </div>
 
-              <select
-                value={form.hip_fit}
-                onChange={(e) =>
-                  setForm({ ...form, hip_fit: e.target.value })
-                }
-                style={inputStyle}
-              >
-                <option>TIGHT</option>
-                <option>GOOD</option>
-                <option>LOOSE</option>
-              </select>
+              <div>
+                <label htmlFor="hip-fit" style={labelStyle}>
+                  Hip Fit
+                </label>
+                <select
+                  id="hip-fit"
+                  value={form.hip_fit}
+                  onChange={(e) =>
+                    setForm({ ...form, hip_fit: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="TIGHT">Tight</option>
+                  <option value="GOOD">Good</option>
+                  <option value="LOOSE">Loose</option>
+                </select>
+              </div>
 
-              <select
-                value={form.thigh_fit}
-                onChange={(e) =>
-                  setForm({ ...form, thigh_fit: e.target.value })
-                }
-                style={inputStyle}
-              >
-                <option>TIGHT</option>
-                <option>GOOD</option>
-                <option>LOOSE</option>
-              </select>
+              <div>
+                <label htmlFor="thigh-fit" style={labelStyle}>
+                  Thigh Fit
+                </label>
+                <select
+                  id="thigh-fit"
+                  value={form.thigh_fit}
+                  onChange={(e) =>
+                    setForm({ ...form, thigh_fit: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="TIGHT">Tight</option>
+                  <option value="GOOD">Good</option>
+                  <option value="LOOSE">Loose</option>
+                </select>
+              </div>
 
-              <select
-                value={form.length_fit}
-                onChange={(e) =>
-                  setForm({ ...form, length_fit: e.target.value })
-                }
-                style={inputStyle}
-              >
-                <option>SHORT</option>
-                <option>GOOD</option>
-                <option>LONG</option>
-              </select>
+              <div>
+                <label htmlFor="length-fit" style={labelStyle}>
+                  Length Fit
+                </label>
+                <select
+                  id="length-fit"
+                  value={form.length_fit}
+                  onChange={(e) =>
+                    setForm({ ...form, length_fit: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="SHORT">Short</option>
+                  <option value="GOOD">Good</option>
+                  <option value="LONG">Long</option>
+                </select>
+              </div>
             </div>
 
-            <textarea
-              value={form.review_text}
-              onChange={(e) =>
-                setForm({ ...form, review_text: e.target.value })
-              }
-              placeholder="Describe the fit experience..."
-              rows={4}
-              style={inputStyle}
-            />
+            <div>
+              <label htmlFor="fit-experience" style={labelStyle}>
+                Fit Experience
+              </label>
+              <textarea
+                id="fit-experience"
+                value={form.review_text}
+                onChange={(e) =>
+                  setForm({ ...form, review_text: e.target.value })
+                }
+                placeholder="Describe how the garment fits..."
+                rows={4}
+                style={inputStyle}
+                required
+              />
+            </div>
 
             <button
               type="submit"
@@ -654,6 +725,8 @@ export default function MemberBPanel() {
             onClick={() => fetchMyReviews()}
             disabled={!token}
             style={buttonStyle}
+            aria-label="Refresh my reviews"
+            title="Refresh my reviews"
           >
             <RefreshCw size={15} />
           </button>
@@ -702,11 +775,18 @@ export default function MemberBPanel() {
 
                 {editingId === r.review_id ? (
                   <>
+                    <label
+                      htmlFor={`edit-review-${r.review_id}`}
+                      style={{ ...labelStyle, marginTop: "10px" }}
+                    >
+                      Edit Fit Experience
+                    </label>
                     <textarea
+                      id={`edit-review-${r.review_id}`}
                       rows={3}
                       value={editingText}
                       onChange={(e) => setEditingText(e.target.value)}
-                      style={{ ...inputStyle, marginTop: "10px" }}
+                      style={inputStyle}
                     />
 
                     <button
@@ -775,14 +855,20 @@ export default function MemberBPanel() {
 
         <form
           onSubmit={semanticSearch}
-          style={{ display: "flex", gap: "10px" }}
+          style={{ display: "flex", gap: "10px", alignItems: "end" }}
         >
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="e.g. waist gaps but thighs feel tight"
-            style={inputStyle}
-          />
+          <div style={{ flex: 1 }}>
+            <label htmlFor="semantic-search-query" style={labelStyle}>
+              Search Fit Experiences
+            </label>
+            <input
+              id="semantic-search-query"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="e.g. waist gaps but thighs feel tight"
+              style={inputStyle}
+            />
+          </div>
 
           <button type="submit" style={buttonStyle}>
             {searching ? "Searching..." : "Vector Search"}
@@ -856,15 +942,26 @@ export default function MemberBPanel() {
           }}
         >
           <ShieldCheck size={20} />
-          Admin Audit Trail
+          Review Activity Audit Trail
         </h3>
+
+        <p
+          style={{
+            color: "var(--text-secondary)",
+            fontSize: "0.85rem",
+            marginBottom: "14px",
+          }}
+        >
+          ADMIN-only database audit records for review creation, updates, and
+          deletions. Click the button to refresh the latest activity.
+        </p>
 
         <button
           onClick={fetchAuditLogs}
           disabled={!token}
           style={buttonStyle}
         >
-          Test Admin-Protected Endpoint
+          Load Audit Trail
         </button>
 
         {auditStatus && (
