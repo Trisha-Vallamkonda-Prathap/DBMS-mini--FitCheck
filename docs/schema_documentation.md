@@ -2,10 +2,11 @@
 
 This document details the normalized relational database schema implemented in `database/fitcheck_setup.sql` and visualized in `docs/diagrams/dbms_mini_v4.drawio`, `docs/diagrams/er_diagram.png`, and `docs/diagrams/relational_schema.png`.
 
-### Print-Ready Artifacts:
-- **Conceptual ER Diagram:** [docs/diagrams/er_diagram.pdf](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.pdf) | [docs/diagrams/er_diagram.png](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.png) | [docs/diagrams/er_diagram.svg](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.svg)
-- **Relational Schema & Constraints:** [docs/diagrams/relational_schema.pdf](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.pdf) | [docs/diagrams/relational_schema.png](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.png) | [docs/diagrams/relational_schema.svg](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.svg)
-- **Draw.io Source Diagram:** [docs/diagrams/dbms_mini_v4.drawio](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/dbms_mini_v4.drawio)
+### Print-Ready Artifacts & Academic Specifications:
+- **Conceptual ER Diagram (Chen Notation):** [docs/diagrams/conceptual_er_diagram.pdf](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.pdf) | [docs/diagrams/conceptual_er_diagram.png](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.png) | [docs/diagrams/conceptual_er_diagram.svg](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.svg)
+- **Relational Schema Diagram & Constraints:** [docs/diagrams/relational_schema_diagram.pdf](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.pdf) | [docs/diagrams/relational_schema_diagram.png](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.png) | [docs/diagrams/relational_schema_diagram.svg](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.svg)
+- **Entity Explanation & Weak Entity Document:** [docs/ENTITY_EXPLANATION.md](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/ENTITY_EXPLANATION.md)
+- **Draw.io Source Diagram:** [docs/diagrams/dbms_mini_v4.drawio](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/dbms_mini_v4.drawio)
 
 ---
 

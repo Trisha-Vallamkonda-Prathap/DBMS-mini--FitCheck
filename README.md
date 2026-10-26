@@ -76,13 +76,14 @@ DBMS-mini--FitCheck/
 │   ├── architecture.md                # Detailed component architecture & workflows
 │   ├── schema_documentation.md        # Comprehensive data dictionary, constraints & entity classifications
 │   ├── database_justification.md      # Relational vs Vector polyglot justification for viva defense
+│   ├── ENTITY_EXPLANATION.md          # Comprehensive breakdown of all entities, weak entity proofs & cardinalities
 │   ├── diagrams/
-│   │   ├── er_diagram.png             # Print-ready high-resolution Conceptual ER Diagram (PNG)
-│   │   ├── er_diagram.pdf             # Print-ready Conceptual ER Diagram (PDF)
-│   │   ├── er_diagram.svg             # Scalable Vector Graphics ER Diagram
-│   │   ├── relational_schema.png      # Print-ready Relational Schema Diagram (PNG)
-│   │   ├── relational_schema.pdf      # Print-ready Relational Schema Diagram (PDF)
-│   │   ├── relational_schema.svg      # Scalable Vector Graphics Relational Schema
+│   │   ├── conceptual_er_diagram.png  # Academic Chen Conceptual ER Diagram (High-Res 200 DPI PNG)
+│   │   ├── conceptual_er_diagram.pdf  # Academic Chen Conceptual ER Diagram (Vector PDF)
+│   │   ├── conceptual_er_diagram.svg  # Scalable Vector Graphics Chen ERD (Double Rect/Diamonds/Dashed Keys)
+│   │   ├── relational_schema_diagram.png # Print-ready Logical Relational Schema Diagram (PNG)
+│   │   ├── relational_schema_diagram.pdf # Print-ready Logical Relational Schema Diagram (PDF)
+│   │   ├── relational_schema_diagram.svg # Scalable Vector Graphics Logical Relational Schema
 │   │   └── dbms_mini_v4.drawio        # Canonical Draw.io ER diagram (preserved)
 │   └── requirements/                  # Course requirements & evaluation rubric PDFs
 │       ├── DBMS Level 3 Project Requirements.pdf
