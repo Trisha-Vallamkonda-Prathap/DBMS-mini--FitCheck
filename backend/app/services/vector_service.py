@@ -239,19 +239,25 @@ def _search_vectors_fallback(
                     continue
 
                 sim = float(np.dot(query_vector, vec))
-                sim_clamped = max(0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim))
+                # RediSearch COSINE distance metric:
+                #   distance = 1 - sim
+                #   similarity = max(0.0, min(1.0, 1.0 - distance)) = max(0.0, min(1.0, sim))
+                # Negative cosine similarity must clamp to 0.0 and never become positive.
+                sim_clamped = max(0.0, min(1.0, sim))
 
                 r_id_raw = decoded.get("review_id")
                 if isinstance(r_id_raw, bytes):
                     r_id_raw = r_id_raw.decode("utf-8")
                 r_id = int(r_id_raw)
-                hits.append((r_id, round(sim_clamped, 4)))
+                # Track raw sim to preserve ranking order matching RediSearch KNN ascending distance
+                hits.append((r_id, round(sim_clamped, 4), sim))
             except Exception as err:
                 logger.debug(f"Error parsing key {key}: {err}")
                 continue
 
-        hits.sort(key=lambda x: x[1], reverse=True)
-        return hits[:k]
+        # Sort descending by raw similarity (matching RediSearch KNN ascending distance: 1 - sim)
+        hits.sort(key=lambda x: x[2], reverse=True)
+        return [(h[0], h[1]) for h in hits[:k]]
     except Exception as e:
         logger.warning(f"Error executing fallback vector scan: {e}")
         return []

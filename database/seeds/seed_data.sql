@@ -129,19 +129,19 @@ INSERT IGNORE INTO GARMENT_MEASUREMENT (garment_size_id, measurement_type, measu
 
 -- Levis 721 Skinny (garment 3, sizes 11-15)
 INSERT IGNORE INTO GARMENT_MEASUREMENT (garment_size_id, measurement_type, measurement_value, unit) VALUES
-(11,'waist',64.50,'cm'),(11,'hip',89.00,'cm'),(11,'thigh',51.00,'cm'),(11,'inseam',76.00,'cm'),
-(12,'waist',67.00,'cm'),(12,'hip',91.50,'cm'),(12,'thigh',52.50,'cm'),(12,'inseam',76.00,'cm'),
-(13,'waist',69.50,'cm'),(13,'hip',94.00,'cm'),(13,'thigh',54.00,'cm'),(13,'inseam',76.00,'cm'),
-(14,'waist',72.00,'cm'),(14,'hip',96.50,'cm'),(14,'thigh',55.50,'cm'),(14,'inseam',76.00,'cm'),
-(15,'waist',74.50,'cm'),(15,'hip',99.00,'cm'),(15,'thigh',57.00,'cm'),(15,'inseam',76.00,'cm');
+(11,'waist',64.50,'cm'),(11,'hip',89.00,'cm'),(11,'thigh',51.00,'cm'),(11,'inseam',76.00,'cm'),(11,'rise',25.00,'cm'),
+(12,'waist',67.00,'cm'),(12,'hip',91.50,'cm'),(12,'thigh',52.50,'cm'),(12,'inseam',76.00,'cm'),(12,'rise',25.50,'cm'),
+(13,'waist',69.50,'cm'),(13,'hip',94.00,'cm'),(13,'thigh',54.00,'cm'),(13,'inseam',76.00,'cm'),(13,'rise',26.00,'cm'),
+(14,'waist',72.00,'cm'),(14,'hip',96.50,'cm'),(14,'thigh',55.50,'cm'),(14,'inseam',76.00,'cm'),(14,'rise',26.50,'cm'),
+(15,'waist',74.50,'cm'),(15,'hip',99.00,'cm'),(15,'thigh',57.00,'cm'),(15,'inseam',76.00,'cm'),(15,'rise',27.00,'cm');
 
 -- Zara Z1975 Wide Leg (garment 4, sizes 16-20)
 INSERT IGNORE INTO GARMENT_MEASUREMENT (garment_size_id, measurement_type, measurement_value, unit) VALUES
-(16,'waist',64.00,'cm'),(16,'hip',90.00,'cm'),(16,'thigh',56.00,'cm'),(16,'inseam',78.00,'cm'),
-(17,'waist',67.00,'cm'),(17,'hip',94.00,'cm'),(17,'thigh',58.00,'cm'),(17,'inseam',78.00,'cm'),
-(18,'waist',70.00,'cm'),(18,'hip',98.00,'cm'),(18,'thigh',60.00,'cm'),(18,'inseam',78.00,'cm'),
-(19,'waist',74.00,'cm'),(19,'hip',102.00,'cm'),(19,'thigh',62.00,'cm'),(19,'inseam',78.00,'cm'),
-(20,'waist',78.00,'cm'),(20,'hip',106.00,'cm'),(20,'thigh',64.00,'cm'),(20,'inseam',78.00,'cm');
+(16,'waist',64.00,'cm'),(16,'hip',90.00,'cm'),(16,'thigh',56.00,'cm'),(16,'inseam',78.00,'cm'),(16,'rise',29.00,'cm'),
+(17,'waist',67.00,'cm'),(17,'hip',94.00,'cm'),(17,'thigh',58.00,'cm'),(17,'inseam',78.00,'cm'),(17,'rise',29.50,'cm'),
+(18,'waist',70.00,'cm'),(18,'hip',98.00,'cm'),(18,'thigh',60.00,'cm'),(18,'inseam',78.00,'cm'),(18,'rise',30.00,'cm'),
+(19,'waist',74.00,'cm'),(19,'hip',102.00,'cm'),(19,'thigh',62.00,'cm'),(19,'inseam',78.00,'cm'),(19,'rise',30.50,'cm'),
+(20,'waist',78.00,'cm'),(20,'hip',106.00,'cm'),(20,'thigh',64.00,'cm'),(20,'inseam',78.00,'cm'),(20,'rise',31.00,'cm');
 
 -- Zara Slim Fit Trousers (garment 5, sizes 21-25)
 INSERT IGNORE INTO GARMENT_MEASUREMENT (garment_size_id, measurement_type, measurement_value, unit) VALUES

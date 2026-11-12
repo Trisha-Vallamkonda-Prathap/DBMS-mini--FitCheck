@@ -57,15 +57,16 @@ Following standard academic DBMS conventions:
 - **Academic Justification**:
   - **Existence Dependency**: A body profile cannot exist without an owning user account.
   - **Identification Dependency**: A body profile is semantically identified by the `user_id` of the account to which it belongs.
-  - **Relational Mapping**: In MySQL physical design, `body_profiles` contains a surrogate primary key `profile_id` alongside `user_id INT UNIQUE NOT NULL FOREIGN KEY REFERENCES users(user_id) ON DELETE CASCADE`.
+  - **Relational Mapping**: In MySQL physical design, `BODY_PROFILE` contains a surrogate primary key `profile_id` alongside `user_id INT UNIQUE NOT NULL FOREIGN KEY REFERENCES `USER`(user_id) ON DELETE CASCADE ON UPDATE CASCADE`.
 - **Attributes**:
   - `profile_id` (PK, surrogate): Internal identifier.
-  - `height`: User height in centimeters.
-  - `waist`: Waist circumference in inches.
-  - `hip`: Hip circumference in inches.
-  - `thigh`: Thigh circumference in inches.
-  - `inseam`: Leg inseam length in inches.
-  - `preferred_fit`: Customer preference tag (`Tight`, `Regular`, `Loose`, `Oversized`).
+  - `height`: User height in centimeters (cm).
+  - `waist`: Natural waist circumference in centimeters (cm).
+  - `hip`: Fullest hip circumference in centimeters (cm).
+  - `thigh`: Thigh circumference in centimeters (cm).
+  - `inseam`: Leg inseam length in centimeters (cm).
+  - `preferred_fit`: Customer preference tag (`TIGHT`, `REGULAR`, `RELAXED`).
+  - `updated_at`: Last updated timestamp.
 - **Participation**: Total participation in `Has_Profile` identifying relationship (a profile cannot exist without a user).
 
 ---
@@ -108,13 +109,13 @@ Following standard academic DBMS conventions:
   3. **Discriminator / Partial Key**: The attribute `size_label` (denoted with a **dashed underline** in the conceptual ERD) acts as the discriminator among all sizes offered for a particular garment.
   4. **Identifying Relationship**: The relationship `Offers_Size` is an **identifying relationship** (denoted with a **double diamond** and **total participation double line** on the weak entity side).
 - **Attributes**:
-  - `size_label` (Partial Key / Discriminator, **dashed underline**): Size designation string (e.g. `'30'`, `'32'`, `'M'`, `'L'`).
-  - `garment_size_id` (Surrogate Implementation PK): Retained in the physical relational model to prevent compound foreign key propagation into child tables (`purchases`, `fit_reviews`, `garment_measurements`).
+  - `size_label` (Partial Key / Discriminator, **dashed underline**): Size designation string (e.g. `'28'`, `'30'`, `'M'`, `'L'`).
+  - `garment_size_id` (Surrogate Implementation PK): Retained in the physical relational model to prevent compound foreign key propagation into child tables (`PURCHASE`, `FIT_REVIEW`, `GARMENT_MEASUREMENT`).
 - **Relational Integrity Mapping**:
-  - Table: `garment_sizes`
+  - Table: `GARMENT_SIZE`
   - Composite Unique Constraint: `CONSTRAINT uq_garment_size UNIQUE (garment_id, size_label)`
-  - Referential Action: `FOREIGN KEY (garment_id) REFERENCES garments(garment_id) ON DELETE CASCADE`
-  - When an owning garment is deleted, all its associated weak size entities are automatically purged by the database engine.
+  - Referential Action: `FOREIGN KEY (garment_id) REFERENCES GARMENT(garment_id) ON DELETE RESTRICT ON UPDATE CASCADE`
+  - Sizing records are protected by `ON DELETE RESTRICT` to prevent accidental deletion of garment catalog styles while manufactured size variants and historical transaction references exist.
 
 ---
 
@@ -122,50 +123,52 @@ Following standard academic DBMS conventions:
 - **Purpose**: Records exact physical fabric dimensions (waist flat lay, front rise, inseam, hip width) for a specific manufactured garment size.
 - **Classification**: **Second-Order Weak Entity**.
 - **Formal Academic Proof**:
-  1. **Existence Dependency**: A physical dimension measurement of $32.50\text{ inches}$ cannot exist without the specific size offering of the garment it measures.
+  1. **Existence Dependency**: A physical dimension measurement of $32.50\text{ cm}$ cannot exist without the specific size offering of the garment it measures.
   2. **Identification Dependency**: Identified jointly by the parent size (`garment_size_id`) and the anatomical dimension measured (`measurement_type`).
-  3. **Partial Key / Discriminator**: `measurement_type` (denoted with a **dashed underline** in the conceptual ERD; e.g., `'waist'`, `'hip'`, `'thigh'`, `'inseam'`).
+  3. **Partial Key / Discriminator**: `measurement_type` (denoted with a **dashed underline** in the conceptual ERD; e.g., `'waist'`, `'hip'`, `'thigh'`, `'inseam'`, `'rise'`).
   4. **Identifying Relationship**: `Has_Measurement` (denoted with a **double diamond** and **total participation double line**).
 - **Attributes**:
-  - `measurement_type` (Partial Key / Discriminator, **dashed underline**): Name of measured dimension (`waist`, `hip`, `thigh`, etc.).
-  - `measurement_value`: Numerical dimension magnitude (e.g. `32.50`).
-  - `unit`: Measurement unit (`in` or `cm`).
+  - `measurement_type` (Partial Key / Discriminator, **dashed underline**): Name of measured dimension (`waist`, `hip`, `thigh`, `inseam`, `rise`).
+  - `measurement_value`: Numerical dimension magnitude (e.g. `71.00`).
+  - `unit`: Measurement unit (`cm` or `in`).
   - `measurement_id` (Surrogate Implementation PK).
 - **Relational Integrity Mapping**:
-  - Table: `garment_measurements`
-  - Composite Unique Constraint: `CONSTRAINT uq_garment_size_measure UNIQUE (garment_size_id, measurement_type)`
-  - Referential Action: `FOREIGN KEY (garment_size_id) REFERENCES garment_sizes(garment_size_id) ON DELETE CASCADE`
+  - Table: `GARMENT_MEASUREMENT`
+  - Composite Unique Constraint: `CONSTRAINT uq_size_measurement UNIQUE (garment_size_id, measurement_type)`
+  - Referential Action: `FOREIGN KEY (garment_size_id) REFERENCES GARMENT_SIZE(garment_size_id) ON DELETE CASCADE ON UPDATE CASCADE`
 
 ---
 
 ### Entity 7: `PURCHASE` (Associative / Strong Entity)
 - **Purpose**: Records historical transactions where a user acquired a specific garment size, including return outcomes and fit satisfaction ratings.
-- **Classification**: Strong / Associative Entity. Maintains an independent surrogate key `purchase_id` with transaction timestamp.
+- **Classification**: Strong / Associative Entity. Maintains an independent surrogate key `purchase_id` with transaction date.
 - **Attributes**:
   - `purchase_id` (PK, solid underline): Unique order record identifier.
-  - `purchase_date`: Timestamp when order was placed.
-  - `outcome`: Categorical outcome (`kept` or `returned`).
-  - `fit_satisfaction`: Numeric satisfaction score (1 to 5).
-  - `fit_preference`: Sizing calibration recorded at checkout (`Tight`, `Regular`, `Loose`).
+  - `purchase_date`: Date when order was placed (`DATE`).
+  - `outcome`: Categorical outcome (`KEPT`, `RETURNED`, `EXCHANGED`).
+  - `fit_satisfaction`: Categorical satisfaction (`GOOD`, `AVERAGE`, `POOR`, nullable).
+  - `fit_preference`: Sizing calibration recorded at checkout (`TIGHT`, `REGULAR`, `RELAXED`, nullable).
 - **Relationships**:
-  - `Makes` (N:1): User who made the purchase (`FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE`).
-  - `Includes` (N:1): Specific size purchased (`FOREIGN KEY (garment_size_id) REFERENCES garment_sizes(garment_size_id) ON DELETE RESTRICT`).
+  - `Makes` (N:1): User who made the purchase (`FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE RESTRICT ON UPDATE CASCADE`).
+  - `Includes` (N:1): Specific size purchased (`FOREIGN KEY (garment_size_id) REFERENCES GARMENT_SIZE(garment_size_id) ON DELETE RESTRICT ON UPDATE CASCADE`).
 
 ---
 
 ### Entity 8: `FIT_REVIEW` (Associative / Strong Entity)
-- **Purpose**: User-generated reviews evaluating whether a garment size fits True to Size, Runs Small, or Runs Large, with granular feedback on waist, hip, and length.
+- **Purpose**: User-generated reviews evaluating whether a garment size fits True to Size, Runs Small, or Runs Large, with granular categorical feedback on waist, hip, thigh, and length, plus natural language review text.
 - **Classification**: Strong / Associative Entity. Maintains an independent surrogate key `review_id`.
 - **Attributes**:
   - `review_id` (PK, solid underline): Unique review record identifier.
-  - `overall_fit`: Qualitative rating (`Runs Small`, `True to Size`, `Runs Large`).
-  - `waist_fit`, `hip_fit`, `length_fit`: Granular segment fit classifications.
-  - `review_text`: Natural language review feedback (embedded into Redis vector store).
-  - `rating`: Star rating (1 to 5).
+  - `overall_fit`: Qualitative fit category (`TOO_SMALL`, `SLIGHTLY_SMALL`, `TRUE_TO_SIZE`, `SLIGHTLY_LARGE`, `TOO_LARGE`).
+  - `waist_fit`: Categorical waist fit (`TIGHT`, `GOOD`, `LOOSE`, nullable).
+  - `hip_fit`: Categorical hip fit (`TIGHT`, `GOOD`, `LOOSE`, nullable).
+  - `thigh_fit`: Categorical thigh fit (`TIGHT`, `GOOD`, `LOOSE`, nullable).
+  - `length_fit`: Categorical length fit (`SHORT`, `GOOD`, `LONG`, nullable).
+  - `review_text`: Natural language review feedback (embedded into Redis vector store; non-empty check constraint).
   - `created_at`: Review submission timestamp.
 - **Relationships**:
-  - `Writes` (N:1): Author user (`FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE`).
-  - `Reviews` (N:1): Target garment size evaluated (`FOREIGN KEY (size_id) REFERENCES garment_sizes(garment_size_id) ON DELETE RESTRICT`).
+  - `Writes` (N:1): Author user (`FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE RESTRICT ON UPDATE CASCADE`).
+  - `Reviews` (N:1): Target garment size evaluated (`FOREIGN KEY (garment_size_id) REFERENCES GARMENT_SIZE(garment_size_id) ON DELETE RESTRICT ON UPDATE CASCADE`).
 
 ---
 
@@ -175,7 +178,7 @@ Under formal DBMS relational translation rules (Elmasri & Navathe / Silberschatz
 
 1. **Mapping of Regular Strong Entities**:
    - Each strong entity $E$ is mapped to a relation $R$ containing all simple attributes of $E$. The primary key of $R$ is the primary key of $E$.
-   - Relations: `users`, `brands`, `garments`.
+   - Relations: `USER`, `BRAND`, `GARMENT`.
 
 2. **Mapping of Weak Entities**:
    - For each weak entity $W$ with owner strong entity $O$, create a relation $R$ containing all simple attributes of $W$.
@@ -183,25 +186,24 @@ Under formal DBMS relational translation rules (Elmasri & Navathe / Silberschatz
    - The primary key of $R$ is conceptually the composite key:
      $$\text{PK}(R) = \{\text{PK}(O), \text{Discriminator}(W)\}$$
    - **Academic Implementation Choice**:
-     To maintain maximum relational performance and avoid wide composite foreign keys across multi-level hierarchies (such as foreign keys referencing 3 or 4 columns down into `purchases` and `fit_reviews`), FitCheck implements an **indexed surrogate primary key** while strictly enforcing the composite candidate key via a `UNIQUE` constraint and `ON DELETE CASCADE`.
+     To maintain maximum relational performance and avoid wide composite foreign keys across multi-level hierarchies (such as foreign keys referencing 3 or 4 columns down into `PURCHASE` and `FIT_REVIEW`), FitCheck implements an **indexed surrogate primary key** while strictly enforcing the composite candidate key via a `UNIQUE` constraint and `ON DELETE RESTRICT` (to safeguard catalog size variants while transactional purchases or reviews exist).
      
      ```sql
      -- Conceptually: PK = (garment_id, size_label)
      -- Physical 3NF Mapping:
-     CREATE TABLE garment_sizes (
-         garment_size_id INT AUTO_INCREMENT PRIMARY KEY,
+     CREATE TABLE GARMENT_SIZE (
+         garment_size_id INT NOT NULL AUTO_INCREMENT,
          garment_id INT NOT NULL,
          size_label VARCHAR(20) NOT NULL,
-         is_available BOOLEAN DEFAULT TRUE,
-         stock_quantity INT DEFAULT 0,
+         CONSTRAINT pk_garment_size PRIMARY KEY (garment_size_id),
          CONSTRAINT uq_garment_size UNIQUE (garment_id, size_label),
          CONSTRAINT fk_size_garment FOREIGN KEY (garment_id)
-             REFERENCES garments(garment_id) ON DELETE CASCADE
+             REFERENCES GARMENT (garment_id) ON DELETE RESTRICT ON UPDATE CASCADE
      );
      ```
    - This physical mapping strictly guarantees:
      1. **Uniqueness**: No duplicate size labels can exist within the same garment.
-     2. **Existence Dependency**: Dropping a garment automatically drops all its sizes via `CASCADE`.
+     2. **Catalog Integrity**: Deleting a garment is restricted (`ON DELETE RESTRICT`) whenever active size records are tied to it, preserving catalog stability.
      3. **Referential Efficiency**: Foreign keys from transactions reference the lightweight 4-byte integer `garment_size_id`.
 
 ---

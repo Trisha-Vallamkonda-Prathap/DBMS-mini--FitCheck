@@ -20,6 +20,7 @@ from backend.app.services.vector_service import (
     delete_review_vector,
     search_review_vectors,
     ensure_vector_index,
+    _search_vectors_fallback,
     VECTOR_DIM,
     INDEX_NAME,
     DOC_PREFIX,
@@ -151,3 +152,102 @@ def test_redis_failure_handled_cleanly():
     assert upsert_review_vector(1, 2, "GOOD", "Test", redis_client=broken_redis) is False
     assert delete_review_vector(1, redis_client=broken_redis) is False
     assert search_review_vectors("query", redis_client=broken_redis) == []
+
+
+def test_vector_fallback_similarity_scoring_and_ranking():
+    """
+    Regression test for fallback vector cosine similarity scoring semantics:
+    - Positive cosine similarity remains positive in [0, 1].
+    - Zero similarity evaluates to 0.0.
+    - Negative cosine similarity clamps consistently to 0.0 and NEVER becomes positive.
+    - Ranking strictly orders results by raw cosine similarity (higher similarity first).
+    - Category filtering is honored in fallback mode.
+    """
+    dim = 4
+    # Query vector: unit vector along dimension 0
+    query_vector = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
+
+    # Candidate 1: strongly positive similarity (dot = 0.90)
+    v1 = np.array([0.90, 0.43588989, 0.0, 0.0], dtype=np.float32)  # norm = 1.0
+    # Candidate 2: moderately positive similarity (dot = 0.40)
+    v2 = np.array([0.40, 0.91651513, 0.0, 0.0], dtype=np.float32)  # norm = 1.0
+    # Candidate 3: orthogonal / zero similarity (dot = 0.0)
+    v3 = np.array([0.0, 1.0, 0.0, 0.0], dtype=np.float32)           # norm = 1.0
+    # Candidate 4: mild negative similarity (dot = -0.30)
+    v4 = np.array([-0.30, 0.9539392, 0.0, 0.0], dtype=np.float32)  # norm = 1.0
+    # Candidate 5: strong negative similarity (dot = -0.80)
+    v5 = np.array([-0.80, 0.60, 0.0, 0.0], dtype=np.float32)       # norm = 1.0
+
+    mock_redis = MagicMock()
+    # Mock keys present in Redis
+    mock_redis.scan_iter.return_value = [
+        b"review_vector:1",
+        b"review_vector:2",
+        b"review_vector:3",
+        b"review_vector:4",
+        b"review_vector:5",
+    ]
+
+    mock_db = {
+        b"review_vector:1": {
+            b"review_id": b"1",
+            b"overall_fit": b"TRUE_TO_SIZE",
+            b"review_embedding": v1.tobytes(),
+        },
+        b"review_vector:2": {
+            b"review_id": b"2",
+            b"overall_fit": b"TRUE_TO_SIZE",
+            b"review_embedding": v2.tobytes(),
+        },
+        b"review_vector:3": {
+            b"review_id": b"3",
+            b"overall_fit": b"SLIGHTLY_SMALL",
+            b"review_embedding": v3.tobytes(),
+        },
+        b"review_vector:4": {
+            b"review_id": b"4",
+            b"overall_fit": b"TOO_SMALL",
+            b"review_embedding": v4.tobytes(),
+        },
+        b"review_vector:5": {
+            b"review_id": b"5",
+            b"overall_fit": b"TOO_SMALL",
+            b"review_embedding": v5.tobytes(),
+        },
+    }
+
+    mock_redis.hgetall.side_effect = lambda k: mock_db.get(k, {})
+
+    hits = _search_vectors_fallback(
+        query_vector=query_vector,
+        k=5,
+        redis_client=mock_redis,
+    )
+
+    assert len(hits) == 5
+
+    # Check ranking order: candidate 1 > 2 > 3 > 4 > 5
+    ranked_ids = [h[0] for h in hits]
+    assert ranked_ids == [1, 2, 3, 4, 5], f"Ranking failed: expected [1, 2, 3, 4, 5], got {ranked_ids}"
+
+    # Check score semantics
+    scores = {h[0]: h[1] for h in hits}
+    # Positive scores match cosine similarity
+    assert np.isclose(scores[1], 0.90, atol=1e-3)
+    assert np.isclose(scores[2], 0.40, atol=1e-3)
+    # Zero score is 0.0
+    assert scores[3] == 0.0
+    # Negative cosine similarity MUST clamp to 0.0 (never become a positive number)
+    assert scores[4] == 0.0, f"Negative similarity became non-zero: {scores[4]}"
+    assert scores[5] == 0.0, f"Negative similarity became non-zero: {scores[5]}"
+
+    # Verify filter functionality
+    filtered_hits = _search_vectors_fallback(
+        query_vector=query_vector,
+        k=5,
+        overall_fit_filter="TRUE_TO_SIZE",
+        redis_client=mock_redis,
+    )
+    assert len(filtered_hits) == 2
+    assert [h[0] for h in filtered_hits] == [1, 2]
+

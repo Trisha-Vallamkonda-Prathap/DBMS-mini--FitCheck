@@ -148,7 +148,7 @@ SELECT
     u.name,
     bp.waist AS user_waist,
     (
-        SELECT ROUND(AVG(m.measurement_value), 2)
+        SELECT ROUND(AVG(CASE WHEN LOWER(m.unit) = 'in' THEN m.measurement_value * 2.54 ELSE m.measurement_value END), 2)
         FROM PURCHASE p
         JOIN GARMENT_SIZE s ON p.garment_size_id = s.garment_size_id
         JOIN GARMENT_MEASUREMENT m ON s.garment_size_id = m.garment_size_id
@@ -160,7 +160,7 @@ FROM `USER` u
 JOIN BODY_PROFILE bp ON u.user_id = bp.user_id
 WHERE bp.waist IS NOT NULL
   AND bp.waist < (
-      SELECT AVG(m.measurement_value)
+      SELECT AVG(CASE WHEN LOWER(m.unit) = 'in' THEN m.measurement_value * 2.54 ELSE m.measurement_value END)
       FROM PURCHASE p
       JOIN GARMENT_SIZE s ON p.garment_size_id = s.garment_size_id
       JOIN GARMENT_MEASUREMENT m ON s.garment_size_id = m.garment_size_id
@@ -181,8 +181,12 @@ WITH TargetBrandSpecs AS (
         g.garment_name,
         s.garment_size_id,
         s.size_label,
-        MAX(CASE WHEN m.measurement_type = 'waist' THEN m.measurement_value END) AS waist_cm,
-        MAX(CASE WHEN m.measurement_type = 'hip' THEN m.measurement_value END) AS hip_cm
+        MAX(CASE WHEN m.measurement_type = 'waist' THEN 
+            CASE WHEN LOWER(m.unit) = 'in' THEN ROUND(m.measurement_value * 2.54, 2) ELSE m.measurement_value END 
+        END) AS waist_cm,
+        MAX(CASE WHEN m.measurement_type = 'hip' THEN 
+            CASE WHEN LOWER(m.unit) = 'in' THEN ROUND(m.measurement_value * 2.54, 2) ELSE m.measurement_value END 
+        END) AS hip_cm
     FROM BRAND b
     JOIN GARMENT g ON b.brand_id = g.brand_id
     JOIN GARMENT_SIZE s ON g.garment_id = s.garment_id

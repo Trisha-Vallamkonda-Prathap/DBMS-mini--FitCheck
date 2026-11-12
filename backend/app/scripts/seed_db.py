@@ -47,14 +47,15 @@ def seed_database():
             statements.append(cleaned)
 
         print(f"Executing {len(statements)} SQL statements from {current_file.name}...")
-        with engine.begin() as conn:
-            for idx, stmt in enumerate(statements, 1):
-                try:
+        try:
+            with engine.begin() as conn:
+                for idx, stmt in enumerate(statements, 1):
                     conn.execute(text(stmt))
-                except Exception as e:
-                    print(f"Warning on statement {idx}: {e}")
+        except Exception as e:
+            print(f"Error executing statement in {current_file.name}: {e}")
+            raise RuntimeError(f"Database seeding failed during {current_file.name}: {e}") from e
 
-    # Verify counts
+    # Verify counts against authoritative minimum baseline
     db = SessionLocal()
     try:
         user_count = db.query(User).count()
@@ -67,15 +68,32 @@ def seed_database():
         review_count = db.query(FitReview).count()
 
         print("\n--- Seed Verification Summary ---")
-        print(f"Users:                {user_count}")
-        print(f"Body Profiles:        {profile_count}")
-        print(f"Brands:               {brand_count}")
-        print(f"Garments:             {garment_count}")
-        print(f"Garment Sizes:        {size_count}")
-        print(f"Garment Measurements: {measurement_count}")
-        print(f"Purchases:            {purchase_count}")
-        print(f"Fit Reviews:          {review_count}")
+        print(f"Users:                {user_count} (min: 10)")
+        print(f"Body Profiles:        {profile_count} (min: 8)")
+        print(f"Brands:               {brand_count} (min: 5)")
+        print(f"Garments:             {garment_count} (min: 14)")
+        print(f"Garment Sizes:        {size_count} (min: 70)")
+        print(f"Garment Measurements: {measurement_count} (min: 310)")
+        print(f"Purchases:            {purchase_count} (min: 30)")
+        print(f"Fit Reviews:          {review_count} (min: 40)")
         print("---------------------------------")
+
+        baseline_checks = [
+            ("Users", user_count, 10),
+            ("Body Profiles", profile_count, 8),
+            ("Brands", brand_count, 5),
+            ("Garments", garment_count, 14),
+            ("Garment Sizes", size_count, 70),
+            ("Garment Measurements", measurement_count, 310),
+            ("Purchases", purchase_count, 30),
+            ("Fit Reviews", review_count, 40),
+        ]
+        for name, actual, minimum in baseline_checks:
+            if actual < minimum:
+                raise ValueError(
+                    f"Seed verification failed for {name}: found {actual}, expected at least {minimum}."
+                )
+
         print("Deterministic seeding completed successfully!")
     finally:
         db.close()

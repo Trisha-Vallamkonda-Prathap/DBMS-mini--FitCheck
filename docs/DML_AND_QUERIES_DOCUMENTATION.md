@@ -106,7 +106,7 @@ FROM `USER` u
 JOIN BODY_PROFILE bp ON u.user_id = bp.user_id
 WHERE bp.waist IS NOT NULL
   AND bp.waist < (
-      SELECT AVG(m.measurement_value)
+      SELECT AVG(CASE WHEN LOWER(m.unit) = 'in' THEN m.measurement_value * 2.54 ELSE m.measurement_value END)
       FROM PURCHASE p
       JOIN GARMENT_SIZE s ON p.garment_size_id = s.garment_size_id
       JOIN GARMENT_MEASUREMENT m ON s.garment_size_id = m.garment_size_id

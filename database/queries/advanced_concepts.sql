@@ -75,9 +75,9 @@ BEGIN
     SELECT 
         s.garment_size_id,
         s.size_label,
-        m.measurement_value AS garment_waist_cm,
+        fn_convert_to_cm(m.measurement_value, m.unit) AS garment_waist_cm,
         (p_user_waist + v_ease) AS target_waist_with_ease,
-        ROUND(ABS(m.measurement_value - (p_user_waist + v_ease)), 2) AS delta_cm
+        ROUND(ABS(fn_convert_to_cm(m.measurement_value, m.unit) - (p_user_waist + v_ease)), 2) AS delta_cm
     FROM GARMENT_SIZE s
     JOIN GARMENT_MEASUREMENT m ON s.garment_size_id = m.garment_size_id
     WHERE s.garment_id = p_garment_id

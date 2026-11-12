@@ -527,17 +527,16 @@ def generate_relational_schema_diagram():
   <!-- Title Header Banner -->
   <rect x="50" y="40" width="2300" height="70" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
   <text x="1200" y="75" class="title" text-anchor="middle">FitCheck — Logical Relational Database Schema Diagram (Physical Design)</text>
-  <text x="1200" y="98" class="subtitle" text-anchor="middle">Normalized Relational Model (3NF) | Foreign Key Constraints, Integrity Rules, Unique Keys, and Weak Entity Mappings</text>
+  <text x="1200" y="98" class="subtitle" text-anchor="middle">Normalized Relational Model (3NF) | Foreign Key Constraints, Integrity Rules, Unique Keys, and Referential Actions</text>
 
   <!-- ============================================================== -->
-  <!-- TABLE 1: users -->
-  <!-- Pos: X=80, Y=160, W=370, H=280 -->
+  <!-- TABLE 1: USER -->
+  <!-- Pos: X=80, Y=160, W=370, H=250 -->
   <!-- ============================================================== -->
-  <rect x="80" y="160" width="370" height="280" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
+  <rect x="80" y="160" width="370" height="250" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
   <rect x="80" y="160" width="370" height="38" fill="#1E293B" rx="4"/>
-  <text x="265" y="185" class="table-hdr" text-anchor="middle">users (Strong Entity Table)</text>
+  <text x="265" y="185" class="table-hdr" text-anchor="middle">USER (Strong Entity Table)</text>
 
-  <!-- Columns -->
   <!-- user_id (PK) -->
   <rect x="82" y="200" width="366" height="30" fill="#FEF2F2"/>
   <text x="95" y="220" class="col-pk">PK  user_id</text>
@@ -550,7 +549,7 @@ def generate_relational_schema_diagram():
 
   <!-- email -->
   <text x="95" y="284" class="col-norm">email [UQ]</text>
-  <text x="260" y="284" class="col-type">VARCHAR(191) UNIQUE</text>
+  <text x="260" y="284" class="col-type">VARCHAR(255) UNIQUE</text>
   <line x1="80" y1="294" x2="450" y2="294" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- password_hash -->
@@ -560,79 +559,74 @@ def generate_relational_schema_diagram():
 
   <!-- role -->
   <text x="95" y="348" class="col-norm">role</text>
-  <text x="260" y="348" class="col-type">ENUM('user','admin')</text>
+  <text x="260" y="348" class="col-type">VARCHAR(10) CHECK ('USER','ADMIN')</text>
   <line x1="80" y1="358" x2="450" y2="358" stroke="#E2E8F0" stroke-width="1"/>
 
-  <!-- is_active -->
-  <text x="95" y="380" class="col-norm">is_active</text>
-  <text x="260" y="380" class="col-type">BOOLEAN DEFAULT TRUE</text>
-  <line x1="80" y1="390" x2="450" y2="390" stroke="#E2E8F0" stroke-width="1"/>
-
   <!-- created_at -->
-  <text x="95" y="412" class="col-norm">created_at</text>
-  <text x="260" y="412" class="col-type">TIMESTAMP DEFAULT NOW</text>
+  <text x="95" y="380" class="col-norm">created_at</text>
+  <text x="260" y="380" class="col-type">TIMESTAMP DEFAULT NOW</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 2: body_profiles (Weak Entity Relational Mapping) -->
-  <!-- Pos: X=80, Y=510, W=370, H=340 -->
+  <!-- TABLE 2: BODY_PROFILE (Dependent Entity) -->
+  <!-- Pos: X=80, Y=470, W=370, H=370 -->
   <!-- ============================================================== -->
-  <rect x="80" y="510" width="370" height="340" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.2" stroke-dasharray="6,3" rx="4"/>
-  <rect x="80" y="510" width="370" height="38" fill="#991B1B" rx="4"/>
-  <text x="265" y="535" class="table-hdr" text-anchor="middle">body_profiles (Weak Entity Mapping)</text>
+  <rect x="80" y="470" width="370" height="370" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.2" stroke-dasharray="6,3" rx="4"/>
+  <rect x="80" y="470" width="370" height="38" fill="#991B1B" rx="4"/>
+  <text x="265" y="495" class="table-hdr" text-anchor="middle">BODY_PROFILE (Dependent Entity)</text>
 
-  <!-- profile_id (Surrogate PK) -->
-  <rect x="82" y="550" width="366" height="30" fill="#FEF2F2"/>
-  <text x="95" y="570" class="col-pk">PK  profile_id</text>
-  <text x="260" y="570" class="col-type">INT AUTO_INCREMENT</text>
+  <!-- profile_id (PK) -->
+  <rect x="82" y="510" width="366" height="30" fill="#FEF2F2"/>
+  <text x="95" y="530" class="col-pk">PK  profile_id</text>
+  <text x="260" y="530" class="col-type">INT AUTO_INCREMENT</text>
 
-  <!-- user_id (FK & Identifying Key, CASCADE) -->
-  <rect x="82" y="580" width="366" height="30" fill="#EFF6FF"/>
-  <text x="95" y="600" class="col-fk">FK  user_id [UQ] -> users</text>
-  <text x="260" y="600" class="col-type">INT (CASCADE)</text>
+  <!-- user_id (FK UQ CASCADE) -->
+  <rect x="82" y="540" width="366" height="30" fill="#EFF6FF"/>
+  <text x="95" y="560" class="col-fk">FK  user_id [UQ] -&gt; USER</text>
+  <text x="260" y="560" class="col-type">INT (CASCADE)</text>
 
   <!-- height -->
-  <text x="95" y="632" class="col-norm">height</text>
-  <text x="260" y="632" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="642" x2="450" y2="642" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="592" class="col-norm">height (cm)</text>
+  <text x="260" y="592" class="col-type">DECIMAL(5,2) NULL</text>
+  <line x1="80" y1="602" x2="450" y2="602" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- waist -->
-  <text x="95" y="664" class="col-norm">waist</text>
-  <text x="260" y="664" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="674" x2="450" y2="674" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="624" class="col-norm">waist (cm)</text>
+  <text x="260" y="624" class="col-type">DECIMAL(5,2) NULL</text>
+  <line x1="80" y1="634" x2="450" y2="634" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- hip -->
-  <text x="95" y="696" class="col-norm">hip</text>
-  <text x="260" y="696" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="706" x2="450" y2="706" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="656" class="col-norm">hip (cm)</text>
+  <text x="260" y="656" class="col-type">DECIMAL(5,2) NULL</text>
+  <line x1="80" y1="666" x2="450" y2="666" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- thigh -->
-  <text x="95" y="728" class="col-norm">thigh</text>
-  <text x="260" y="728" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="738" x2="450" y2="738" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="688" class="col-norm">thigh (cm)</text>
+  <text x="260" y="688" class="col-type">DECIMAL(5,2) NULL</text>
+  <line x1="80" y1="698" x2="450" y2="698" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- inseam -->
-  <text x="95" y="760" class="col-norm">inseam</text>
-  <text x="260" y="760" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="770" x2="450" y2="770" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="720" class="col-norm">inseam (cm)</text>
+  <text x="260" y="720" class="col-type">DECIMAL(5,2) NULL</text>
+  <line x1="80" y1="730" x2="450" y2="730" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- preferred_fit -->
-  <text x="95" y="792" class="col-norm">preferred_fit</text>
-  <text x="260" y="792" class="col-type">VARCHAR(20) DEFAULT 'Regular'</text>
-  <line x1="80" y1="802" x2="450" y2="802" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="95" y="752" class="col-norm">preferred_fit</text>
+  <text x="260" y="752" class="col-type">VARCHAR(20) ('TIGHT','REGULAR','RELAXED')</text>
+  <line x1="80" y1="762" x2="450" y2="762" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- updated_at -->
-  <text x="95" y="824" class="col-norm">updated_at</text>
-  <text x="260" y="824" class="col-type">TIMESTAMP DEFAULT NOW</text>
+  <text x="95" y="784" class="col-norm">updated_at</text>
+  <text x="260" y="784" class="col-type">TIMESTAMP ON UPDATE NOW</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 3: purchases -->
-  <!-- Pos: X=540, Y=510, W=400, H=340 -->
+  <!-- TABLE 3: PURCHASE -->
+  <!-- Pos: X=540, Y=510, W=400, H=320 -->
   <!-- ============================================================== -->
-  <rect x="540" y="510" width="400" height="340" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
+  <rect x="540" y="510" width="400" height="320" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
   <rect x="540" y="510" width="400" height="38" fill="#1E293B" rx="4"/>
-  <text x="740" y="535" class="table-hdr" text-anchor="middle">purchases (Associative Entity)</text>
+  <text x="740" y="535" class="table-hdr" text-anchor="middle">PURCHASE (Associative Entity)</text>
 
   <!-- purchase_id (PK) -->
   <rect x="542" y="550" width="396" height="30" fill="#FEF2F2"/>
@@ -641,46 +635,41 @@ def generate_relational_schema_diagram():
 
   <!-- user_id (FK) -->
   <rect x="542" y="580" width="396" height="30" fill="#EFF6FF"/>
-  <text x="555" y="600" class="col-fk">FK  user_id -> users</text>
-  <text x="740" y="600" class="col-type">INT (CASCADE)</text>
+  <text x="555" y="600" class="col-fk">FK  user_id -&gt; USER</text>
+  <text x="740" y="600" class="col-type">INT (RESTRICT)</text>
 
   <!-- garment_size_id (FK) -->
   <rect x="542" y="610" width="396" height="30" fill="#EFF6FF"/>
-  <text x="555" y="630" class="col-fk">FK  garment_size_id -> sizes</text>
+  <text x="555" y="630" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
   <text x="740" y="630" class="col-type">INT (RESTRICT)</text>
 
   <!-- purchase_date -->
   <text x="555" y="662" class="col-norm">purchase_date</text>
-  <text x="740" y="662" class="col-type">TIMESTAMP DEFAULT NOW</text>
+  <text x="740" y="662" class="col-type">DATE DEFAULT CURRENT_DATE</text>
   <line x1="540" y1="672" x2="940" y2="672" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- outcome -->
   <text x="555" y="694" class="col-norm">outcome</text>
-  <text x="740" y="694" class="col-type">ENUM('kept','returned')</text>
+  <text x="740" y="694" class="col-type">VARCHAR(10) ('KEPT','RETURNED','EXCHANGED')</text>
   <line x1="540" y1="704" x2="940" y2="704" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- fit_satisfaction -->
   <text x="555" y="726" class="col-norm">fit_satisfaction</text>
-  <text x="740" y="726" class="col-type">TINYINT (1-5)</text>
+  <text x="740" y="726" class="col-type">VARCHAR(10) ('GOOD','AVERAGE','POOR')</text>
   <line x1="540" y1="736" x2="940" y2="736" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- fit_preference -->
   <text x="555" y="758" class="col-norm">fit_preference</text>
-  <text x="740" y="758" class="col-type">VARCHAR(20)</text>
-  <line x1="540" y1="768" x2="940" y2="768" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- notes -->
-  <text x="555" y="790" class="col-norm">notes</text>
-  <text x="740" y="790" class="col-type">TEXT NULL</text>
+  <text x="740" y="758" class="col-type">VARCHAR(20) ('TIGHT','REGULAR','RELAXED')</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 4: fit_reviews -->
-  <!-- Pos: X=1010, Y=510, W=410, H=370 -->
+  <!-- TABLE 4: FIT_REVIEW -->
+  <!-- Pos: X=1010, Y=510, W=410, H=410 -->
   <!-- ============================================================== -->
-  <rect x="1010" y="510" width="410" height="370" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
+  <rect x="1010" y="510" width="410" height="410" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
   <rect x="1010" y="510" width="410" height="38" fill="#1E293B" rx="4"/>
-  <text x="1215" y="535" class="table-hdr" text-anchor="middle">fit_reviews (Associative Review Entity)</text>
+  <text x="1215" y="535" class="table-hdr" text-anchor="middle">FIT_REVIEW (Associative Review Entity)</text>
 
   <!-- review_id (PK) -->
   <rect x="1012" y="550" width="406" height="30" fill="#FEF2F2"/>
@@ -689,51 +678,56 @@ def generate_relational_schema_diagram():
 
   <!-- user_id (FK) -->
   <rect x="1012" y="580" width="406" height="30" fill="#EFF6FF"/>
-  <text x="1025" y="600" class="col-fk">FK  user_id -> users</text>
-  <text x="1235" y="600" class="col-type">INT (CASCADE)</text>
+  <text x="1025" y="600" class="col-fk">FK  user_id -&gt; USER</text>
+  <text x="1235" y="600" class="col-type">INT (RESTRICT)</text>
 
-  <!-- garment_id (FK) -->
+  <!-- garment_size_id (FK) -->
   <rect x="1012" y="610" width="406" height="30" fill="#EFF6FF"/>
-  <text x="1025" y="630" class="col-fk">FK  garment_id -> garments</text>
+  <text x="1025" y="630" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
   <text x="1235" y="630" class="col-type">INT (RESTRICT)</text>
 
-  <!-- size_id (FK) -->
-  <rect x="1012" y="640" width="406" height="30" fill="#EFF6FF"/>
-  <text x="1025" y="660" class="col-fk">FK  size_id -> garment_sizes</text>
-  <text x="1235" y="660" class="col-type">INT (RESTRICT)</text>
-
   <!-- overall_fit -->
-  <text x="1025" y="692" class="col-norm">overall_fit</text>
-  <text x="1235" y="692" class="col-type">ENUM('True to Size',...)</text>
-  <line x1="1010" y1="702" x2="1420" y2="702" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1025" y="662" class="col-norm">overall_fit</text>
+  <text x="1235" y="662" class="col-type">VARCHAR(20) ('TOO_SMALL',...,'TOO_LARGE')</text>
+  <line x1="1010" y1="672" x2="1420" y2="672" stroke="#E2E8F0" stroke-width="1"/>
 
-  <!-- waist_fit / hip_fit / length_fit -->
-  <text x="1025" y="724" class="col-norm">waist_fit, hip_fit, length_fit</text>
-  <text x="1235" y="724" class="col-type">VARCHAR(20)</text>
-  <line x1="1010" y1="734" x2="1420" y2="734" stroke="#E2E8F0" stroke-width="1"/>
+  <!-- waist_fit -->
+  <text x="1025" y="694" class="col-norm">waist_fit</text>
+  <text x="1235" y="694" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
+  <line x1="1010" y1="704" x2="1420" y2="704" stroke="#E2E8F0" stroke-width="1"/>
+
+  <!-- hip_fit -->
+  <text x="1025" y="726" class="col-norm">hip_fit</text>
+  <text x="1235" y="726" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
+  <line x1="1010" y1="736" x2="1420" y2="736" stroke="#E2E8F0" stroke-width="1"/>
+
+  <!-- thigh_fit -->
+  <text x="1025" y="758" class="col-norm">thigh_fit</text>
+  <text x="1235" y="758" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
+  <line x1="1010" y1="768" x2="1420" y2="768" stroke="#E2E8F0" stroke-width="1"/>
+
+  <!-- length_fit -->
+  <text x="1025" y="790" class="col-norm">length_fit</text>
+  <text x="1235" y="790" class="col-type">VARCHAR(10) ('SHORT','GOOD','LONG')</text>
+  <line x1="1010" y1="800" x2="1420" y2="800" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- review_text -->
-  <text x="1025" y="756" class="col-norm">review_text</text>
-  <text x="1235" y="756" class="col-type">TEXT NOT NULL</text>
-  <line x1="1010" y1="766" x2="1420" y2="766" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- rating -->
-  <text x="1025" y="788" class="col-norm">rating</text>
-  <text x="1235" y="788" class="col-type">TINYINT (1-5)</text>
-  <line x1="1010" y1="798" x2="1420" y2="798" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1025" y="822" class="col-norm">review_text</text>
+  <text x="1235" y="822" class="col-type">TEXT NOT NULL (CHAR_LENGTH &gt; 0)</text>
+  <line x1="1010" y1="832" x2="1420" y2="832" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- created_at -->
-  <text x="1025" y="820" class="col-norm">created_at</text>
-  <text x="1235" y="820" class="col-type">TIMESTAMP DEFAULT NOW</text>
+  <text x="1025" y="854" class="col-norm">created_at</text>
+  <text x="1235" y="854" class="col-type">TIMESTAMP DEFAULT NOW</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 5: brands -->
-  <!-- Pos: X=1900, Y=160, W=380, H=220 -->
+  <!-- TABLE 5: BRAND -->
+  <!-- Pos: X=1900, Y=160, W=380, H=190 -->
   <!-- ============================================================== -->
-  <rect x="1900" y="160" width="380" height="220" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
+  <rect x="1900" y="160" width="380" height="190" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
   <rect x="1900" y="160" width="380" height="38" fill="#1E293B" rx="4"/>
-  <text x="2090" y="185" class="table-hdr" text-anchor="middle">brands (Strong Entity Table)</text>
+  <text x="2090" y="185" class="table-hdr" text-anchor="middle">BRAND (Strong Entity Table)</text>
 
   <!-- brand_id (PK) -->
   <rect x="1902" y="200" width="376" height="30" fill="#FEF2F2"/>
@@ -747,172 +741,148 @@ def generate_relational_schema_diagram():
 
   <!-- sizing_system -->
   <text x="1915" y="284" class="col-norm">sizing_system</text>
-  <text x="2100" y="284" class="col-type">VARCHAR(50) DEFAULT 'US'</text>
-  <line x1="1900" y1="294" x2="2280" y2="294" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- return_rate (derived view/virtual) -->
-  <text x="1915" y="316" class="col-norm">return_rate (Virtual)</text>
-  <text x="2100" y="316" class="col-type">DECIMAL(4,2) COMPUTED</text>
+  <text x="2100" y="284" class="col-type">VARCHAR(20) ('ALPHA','NUMERIC','WAIST_BASED')</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 6: garments -->
-  <!-- Pos: X=1900, Y=440, W=380, H=280 -->
+  <!-- TABLE 6: GARMENT -->
+  <!-- Pos: X=1900, Y=400, W=380, H=280 -->
   <!-- ============================================================== -->
-  <rect x="1900" y="440" width="380" height="280" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="1900" y="440" width="380" height="38" fill="#1E293B" rx="4"/>
-  <text x="2090" y="465" class="table-hdr" text-anchor="middle">garments (Strong Entity Table)</text>
+  <rect x="1900" y="400" width="380" height="280" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
+  <rect x="1900" y="400" width="380" height="38" fill="#1E293B" rx="4"/>
+  <text x="2090" y="425" class="table-hdr" text-anchor="middle">GARMENT (Strong Entity Table)</text>
 
   <!-- garment_id (PK) -->
-  <rect x="1902" y="480" width="376" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="500" class="col-pk">PK  garment_id</text>
-  <text x="2100" y="500" class="col-type">INT AUTO_INCREMENT</text>
+  <rect x="1902" y="440" width="376" height="30" fill="#FEF2F2"/>
+  <text x="1915" y="460" class="col-pk">PK  garment_id</text>
+  <text x="2100" y="460" class="col-type">INT AUTO_INCREMENT</text>
 
   <!-- brand_id (FK) -->
-  <rect x="1902" y="510" width="376" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="530" class="col-fk">FK  brand_id -> brands</text>
-  <text x="2100" y="530" class="col-type">INT (CASCADE)</text>
+  <rect x="1902" y="470" width="376" height="30" fill="#EFF6FF"/>
+  <text x="1915" y="490" class="col-fk">FK  brand_id -&gt; BRAND</text>
+  <text x="2100" y="490" class="col-type">INT (RESTRICT)</text>
 
   <!-- garment_name -->
-  <text x="1915" y="562" class="col-norm">garment_name</text>
-  <text x="2100" y="562" class="col-type">VARCHAR(150) NOT NULL</text>
-  <line x1="1900" y1="572" x2="2280" y2="572" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1915" y="522" class="col-norm">garment_name</text>
+  <text x="2100" y="522" class="col-type">VARCHAR(150) NOT NULL</text>
+  <line x1="1900" y1="532" x2="2280" y2="532" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- garment_category -->
-  <text x="1915" y="594" class="col-norm">garment_category</text>
-  <text x="2100" y="594" class="col-type">ENUM('Jeans','Shirt',...)</text>
-  <line x1="1900" y1="604" x2="2280" y2="604" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1915" y="554" class="col-norm">garment_category</text>
+  <text x="2100" y="554" class="col-type">VARCHAR(30) ('Jeans','Trousers')</text>
+  <line x1="1900" y1="564" x2="2280" y2="564" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- fit_type -->
-  <text x="1915" y="626" class="col-norm">fit_type</text>
-  <text x="2100" y="626" class="col-type">VARCHAR(50)</text>
-  <line x1="1900" y1="636" x2="2280" y2="636" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1915" y="586" class="col-norm">fit_type</text>
+  <text x="2100" y="586" class="col-type">VARCHAR(30) ('STRAIGHT','SLIM',...)</text>
+  <line x1="1900" y1="596" x2="2280" y2="596" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- description -->
-  <text x="1915" y="658" class="col-norm">description</text>
-  <text x="2100" y="658" class="col-type">TEXT NULL</text>
+  <text x="1915" y="618" class="col-norm">description</text>
+  <text x="2100" y="618" class="col-type">TEXT NULL</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 7: garment_sizes (GENUINE WEAK ENTITY RELATIONAL MAPPING) -->
-  <!-- Owner: garments | Partial Key: size_label -->
-  <!-- Relational Candidate Key: (garment_id, size_label) [UNIQUE] -->
-  <!-- Surrogate PK: garment_size_id -->
-  <!-- Pos: X=1900, Y=780, W=400, H=280 -->
+  <!-- TABLE 7: GARMENT_SIZE (Weak Entity Relational Mapping) -->
+  <!-- Pos: X=1900, Y=730, W=400, H=220 -->
   <!-- ============================================================== -->
-  <rect x="1900" y="780" width="400" height="280" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
-  <rect x="1900" y="780" width="400" height="38" fill="#991B1B" rx="4"/>
-  <text x="2100" y="805" class="table-hdr" text-anchor="middle">garment_sizes (Weak Entity Mapping)</text>
+  <rect x="1900" y="730" width="400" height="220" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
+  <rect x="1900" y="730" width="400" height="38" fill="#991B1B" rx="4"/>
+  <text x="2100" y="755" class="table-hdr" text-anchor="middle">GARMENT_SIZE (Weak Entity Mapping)</text>
 
   <!-- garment_size_id (Surrogate PK) -->
-  <rect x="1902" y="820" width="396" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="840" class="col-pk">PK  garment_size_id</text>
-  <text x="2120" y="840" class="col-type">INT AUTO_INCREMENT</text>
+  <rect x="1902" y="770" width="396" height="30" fill="#FEF2F2"/>
+  <text x="1915" y="790" class="col-pk">PK  garment_size_id</text>
+  <text x="2120" y="790" class="col-type">INT AUTO_INCREMENT</text>
 
-  <!-- garment_id (FK & Owner Component of Composite Key) -->
-  <rect x="1902" y="850" width="396" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="870" class="col-fk">FK  garment_id -> garments</text>
-  <text x="2120" y="870" class="col-type">INT (CASCADE)</text>
+  <!-- garment_id (FK RESTRICT) -->
+  <rect x="1902" y="800" width="396" height="30" fill="#EFF6FF"/>
+  <text x="1915" y="820" class="col-fk">FK  garment_id -&gt; GARMENT</text>
+  <text x="2120" y="820" class="col-type">INT (RESTRICT)</text>
 
   <!-- size_label (Partial Key / Discriminator) -->
-  <rect x="1902" y="880" width="396" height="30" fill="#FEF3C7"/>
-  <text x="1915" y="900" class="col-pk" fill="#B45309">DISCRIM  size_label [PARTIAL KEY]</text>
-  <text x="2170" y="900" class="col-type">VARCHAR(20)</text>
+  <rect x="1902" y="830" width="396" height="30" fill="#FEF3C7"/>
+  <text x="1915" y="850" class="col-pk" fill="#B45309">DISCRIM  size_label [PARTIAL KEY]</text>
+  <text x="2170" y="850" class="col-type">VARCHAR(20)</text>
 
   <!-- Composite Candidate Key Constraint Note -->
-  <text x="1915" y="932" class="col-norm" font-weight="bold">UQ(garment_id, size_label)</text>
-  <text x="2120" y="932" class="col-type">COMPOSITE CANDIDATE PK</text>
-  <line x1="1900" y1="942" x2="2300" y2="942" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- is_available -->
-  <text x="1915" y="964" class="col-norm">is_available</text>
-  <text x="2120" y="964" class="col-type">BOOLEAN DEFAULT TRUE</text>
-  <line x1="1900" y1="974" x2="2300" y2="974" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- stock_quantity -->
-  <text x="1915" y="996" class="col-norm">stock_quantity</text>
-  <text x="2120" y="996" class="col-type">INT DEFAULT 0</text>
+  <text x="1915" y="882" class="col-norm" font-weight="bold">UQ(garment_id, size_label)</text>
+  <text x="2120" y="882" class="col-type">COMPOSITE CANDIDATE PK</text>
 
 
   <!-- ============================================================== -->
-  <!-- TABLE 8: garment_measurements (WEAK ENTITY RELATIONAL MAPPING) -->
-  <!-- Owner: garment_sizes | Partial Key: measurement_type -->
-  <!-- Relational Composite PK / FK: (garment_size_id, measurement_type) -->
-  <!-- Pos: X=1900, Y=1130, W=400, H=260 -->
+  <!-- TABLE 8: GARMENT_MEASUREMENT (Second-Order Weak Entity) -->
+  <!-- Pos: X=1900, Y=1010, W=400, H=280 -->
   <!-- ============================================================== -->
-  <rect x="1900" y="1130" width="400" height="260" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
-  <rect x="1900" y="1130" width="400" height="38" fill="#991B1B" rx="4"/>
-  <text x="2100" y="1155" class="table-hdr" text-anchor="middle">garment_measurements (Weak Entity)</text>
+  <rect x="1900" y="1010" width="400" height="280" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
+  <rect x="1900" y="1010" width="400" height="38" fill="#991B1B" rx="4"/>
+  <text x="2100" y="1035" class="table-hdr" text-anchor="middle">GARMENT_MEASUREMENT (Weak Entity)</text>
 
   <!-- measurement_id (Surrogate PK) -->
-  <rect x="1902" y="1170" width="396" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="1190" class="col-pk">PK  measurement_id</text>
-  <text x="2130" y="1190" class="col-type">INT AUTO_INCREMENT</text>
+  <rect x="1902" y="1050" width="396" height="30" fill="#FEF2F2"/>
+  <text x="1915" y="1070" class="col-pk">PK  measurement_id</text>
+  <text x="2130" y="1070" class="col-type">INT AUTO_INCREMENT</text>
 
-  <!-- garment_size_id (FK & Owner Component) -->
-  <rect x="1902" y="1200" width="396" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="1220" class="col-fk">FK  garment_size_id -> sizes</text>
-  <text x="2130" y="1220" class="col-type">INT (CASCADE)</text>
+  <!-- garment_size_id (FK CASCADE) -->
+  <rect x="1902" y="1080" width="396" height="30" fill="#EFF6FF"/>
+  <text x="1915" y="1100" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
+  <text x="2130" y="1100" class="col-type">INT (CASCADE)</text>
 
   <!-- measurement_type (Partial Key / Discriminator) -->
-  <rect x="1902" y="1230" width="396" height="30" fill="#FEF3C7"/>
-  <text x="1915" y="1250" class="col-pk" fill="#B45309">DISCRIM  measurement_type</text>
-  <text x="2170" y="1250" class="col-type">VARCHAR(30)</text>
+  <rect x="1902" y="1110" width="396" height="30" fill="#FEF3C7"/>
+  <text x="1915" y="1130" class="col-pk" fill="#B45309">DISCRIM  measurement_type</text>
+  <text x="2170" y="1130" class="col-type">VARCHAR(20)</text>
 
   <!-- Composite Constraint Note -->
-  <text x="1915" y="1282" class="col-norm" font-weight="bold">UQ(garment_size_id, measurement_type)</text>
-  <text x="2170" y="1282" class="col-type">COMPOSITE KEY</text>
-  <line x1="1900" y1="1292" x2="2300" y2="1292" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1915" y="1162" class="col-norm" font-weight="bold">UQ(garment_size_id, measurement_type)</text>
+  <text x="2170" y="1162" class="col-type">COMPOSITE KEY</text>
+  <line x1="1900" y1="1172" x2="2300" y2="1172" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- measurement_value -->
-  <text x="1915" y="1314" class="col-norm">measurement_value</text>
-  <text x="2130" y="1314" class="col-type">DECIMAL(5,2) NOT NULL</text>
-  <line x1="1900" y1="1324" x2="2300" y2="1324" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1915" y="1194" class="col-norm">measurement_value</text>
+  <text x="2130" y="1194" class="col-type">DECIMAL(6,2) CHECK (&gt; 0)</text>
+  <line x1="1900" y1="1204" x2="2300" y2="1204" stroke="#E2E8F0" stroke-width="1"/>
 
   <!-- unit -->
-  <text x="1915" y="1346" class="col-norm">unit</text>
-  <text x="2130" y="1346" class="col-type">VARCHAR(10) DEFAULT 'in'</text>
+  <text x="1915" y="1226" class="col-norm">unit</text>
+  <text x="2130" y="1226" class="col-type">VARCHAR(5) CHECK ('cm','in')</text>
 
 
   <!-- ============================================================== -->
   <!-- FOREIGN KEY RELATIONSHIP CONNECTOR ARROWS (Routed Outside Tables) -->
   <!-- ============================================================== -->
 
-  <!-- 1. users -> body_profiles (1:1 Identifying Cascade) -->
-  <path d="M 265 440 L 265 510" fill="none" stroke="#DC2626" stroke-width="2.2" marker-end="url(#fk-arrow-weak)"/>
-  <text x="275" y="480" class="card-label" fill="#DC2626">1 : 1 (CASCADE)</text>
+  <!-- 1. USER -&gt; BODY_PROFILE (1:1 Identifying Cascade) -->
+  <path d="M 265 410 L 265 470" fill="none" stroke="#DC2626" stroke-width="2.2" marker-end="url(#fk-arrow-weak)"/>
+  <text x="275" y="445" class="card-label" fill="#DC2626">1 : 1 (CASCADE)</text>
 
-  <!-- 2. users -> purchases (1:N Cascade, routed through channel at x=495) -->
+  <!-- 2. USER -&gt; PURCHASE (1:N Restrict, routed through channel at x=495) -->
   <path d="M 450 220 L 495 220 L 495 600 L 540 600" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="500" y="380" class="card-label">1 : N</text>
+  <text x="500" y="380" class="card-label">1 : N (RESTRICT)</text>
 
-  <!-- 3. users -> fit_reviews (1:N Cascade, routed through top channel at y=130) -->
+  <!-- 3. USER -&gt; FIT_REVIEW (1:N Restrict, routed through top channel at y=130) -->
   <path d="M 450 200 L 480 200 L 480 130 L 980 130 L 980 600 L 1010 600" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="730" y="120" class="card-label">1 : N (CASCADE)</text>
+  <text x="730" y="120" class="card-label">1 : N (RESTRICT)</text>
 
-  <!-- 4. brands -> garments (1:N Cascade) -->
-  <path d="M 2090 380 L 2090 440" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="2100" y="415" class="card-label">1 : N</text>
+  <!-- 4. BRAND -&gt; GARMENT (1:N Restrict) -->
+  <path d="M 2090 350 L 2090 400" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
+  <text x="2100" y="380" class="card-label">1 : N (RESTRICT)</text>
 
-  <!-- 5. garments -> garment_sizes (1:N Weak Identifying Owner Cascade) -->
-  <path d="M 2090 720 L 2090 780" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#fk-arrow-weak)"/>
-  <text x="2100" y="755" class="card-label" fill="#DC2626">1 : N (IDENTIFYING CASCADE)</text>
+  <!-- 5. GARMENT -&gt; GARMENT_SIZE (1:N Restrict) -->
+  <path d="M 2090 680 L 2090 730" fill="none" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fk-arrow)"/>
+  <text x="2100" y="710" class="card-label">1 : N (RESTRICT)</text>
 
-  <!-- 6. garment_sizes -> garment_measurements (1:N Weak Identifying Owner Cascade) -->
-  <path d="M 2090 1060 L 2090 1130" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#fk-arrow-weak)"/>
-  <text x="2100" y="1100" class="card-label" fill="#DC2626">1 : N (IDENTIFYING CASCADE)</text>
+  <!-- 6. GARMENT_SIZE -&gt; GARMENT_MEASUREMENT (1:N Weak Identifying Cascade) -->
+  <path d="M 2090 950 L 2090 1010" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#fk-arrow-weak)"/>
+  <text x="2100" y="985" class="card-label" fill="#DC2626">1 : N (CASCADE)</text>
 
-  <!-- 7. garment_sizes -> purchases (1:N Restrict, routed along bottom channel y=920, enters purchases at bottom center) -->
-  <path d="M 1900 870 L 1600 870 L 1600 920 L 740 920 L 740 850" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
-  <text x="1100" y="910" class="card-label">1 : N (RESTRICT)</text>
+  <!-- 7. GARMENT_SIZE -&gt; PURCHASE (1:N Restrict, enters purchase bottom) -->
+  <path d="M 1900 820 L 1600 820 L 1600 900 L 740 900 L 740 830" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
+  <text x="1100" y="890" class="card-label">1 : N (RESTRICT)</text>
 
-  <!-- 8. garments -> fit_reviews (1:N Restrict, enters fit_reviews at right side y=630) -->
-  <path d="M 1900 500 L 1650 500 L 1650 630 L 1420 630" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
+  <!-- 8. GARMENT_SIZE -&gt; FIT_REVIEW (1:N Restrict, enters review right side) -->
+  <path d="M 1900 790 L 1500 790 L 1500 630 L 1420 630" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
   <text x="1510" y="620" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 9. garment_sizes -> fit_reviews (1:N Restrict, enters fit_reviews at right side y=660) -->
-  <path d="M 1900 840 L 1580 840 L 1580 660 L 1420 660" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
-  <text x="1480" y="650" class="card-label">1 : N (RESTRICT)</text>
 
 
   <!-- ============================================================== -->
@@ -924,7 +894,7 @@ def generate_relational_schema_diagram():
   <!-- Item 1: Strong vs Weak Entity Relational Mapping -->
   <rect x="80" y="1510" width="30" height="20" fill="#1E293B"/>
   <text x="120" y="1525" class="col-norm" font-weight="bold">Solid Border Table:</text>
-  <text x="270" y="1525" class="col-norm">Autonomous Base Table (Strong Entity with Independent Primary Key e.g., users, brands, garments)</text>
+  <text x="270" y="1525" class="col-norm">Autonomous Base Table (Strong Entity with Independent Primary Key e.g., USER, BRAND, GARMENT)</text>
 
   <rect x="80" y="1545" width="30" height="20" fill="#FFFFFF" stroke="#DC2626" stroke-width="2" stroke-dasharray="4,2"/>
   <text x="120" y="1560" class="col-norm" font-weight="bold" fill="#DC2626">Dashed Border Table:</text>
@@ -951,9 +921,9 @@ def generate_relational_schema_diagram():
   <text x="1220" y="1535" class="col-norm" font-weight="bold">Weak Entity Academic Resolution &amp; Relational Correspondence:</text>
   <text x="1220" y="1560" class="col-norm">• GARMENT_SIZE cannot exist without an owning GARMENT; a size label like "32W 30L" has no standalone meaning.</text>
   <text x="1220" y="1582" class="col-norm">• Conceptual Key: Composite {garment_id, size_label}. Relational implementation preserves this via UQ(garment_id, size_label).</text>
-  <text x="1220" y="1604" class="col-norm">• Surrogate garment_size_id is retained to prevent bulky compound foreign keys in child tables (purchases, measurements).</text>
+  <text x="1220" y="1604" class="col-norm">• Surrogate garment_size_id is retained to prevent bulky compound foreign keys in child tables (PURCHASE, GARMENT_MEASUREMENT).</text>
   <text x="1220" y="1626" class="col-norm">• GARMENT_MEASUREMENT is a second-order weak entity dependent on GARMENT_SIZE via UQ(garment_size_id, measurement_type).</text>
-  <text x="1220" y="1648" class="col-norm">• Foreign Key cascades ensure full existence dependency: Deleting a GARMENT deletes all its sizes and all their measurements.</text>
+  <text x="1220" y="1648" class="col-norm">• Referential Actions: GARMENT deletion uses RESTRICT to protect sizes; GARMENT_SIZE deletion cascades to MEASUREMENTS.</text>
 </svg>
 """
     with open("docs/diagrams/relational_schema_diagram.svg", "w", encoding="utf-8") as f:
@@ -968,6 +938,16 @@ def generate_relational_schema_diagram():
     pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0))
     pix.save("docs/diagrams/relational_schema_diagram.png")
     print("[SUCCESS] Regenerated docs/diagrams/relational_schema_diagram.png & .pdf")
+
+    # Also keep relational_schema.* in sync
+    try:
+        pix.save("docs/diagrams/relational_schema.png")
+        pdf_doc.save("docs/diagrams/relational_schema.pdf")
+        with open("docs/diagrams/relational_schema.svg", "w", encoding="utf-8") as f:
+            f.write(svg)
+        print("[SUCCESS] Synchronized docs/diagrams/relational_schema.png, .pdf, & .svg")
+    except Exception as e:
+        print("[NOTICE] relational_schema sync:", e)
 
 
 if __name__ == "__main__":
