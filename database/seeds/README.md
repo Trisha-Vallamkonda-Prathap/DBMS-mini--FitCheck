@@ -26,7 +26,7 @@ These values are used as realistic synthetic reference values for the academic p
 
 Due to foreign key dependencies, relational data must be inserted in this exact sequence:
 
-1. `USER` (10 synthetic users + 1 admin) — Member A seed
+1. `USER` (10 synthetic users total, including 1 admin) — Member A seed
 2. `BODY_PROFILE` (8 profiles for users 2–9) — Member A seed
 3. `BRAND` (5 brands: Levis, Zara, H&M, Mango, Madewell) — Member A seed
 4. `GARMENT` (14 garments across Jeans and Trousers) — Member A seed
@@ -354,7 +354,7 @@ python -m pytest backend/tests -v
 Verified result:
 
 ```text
-47 passed
+59 passed
 ```
 
 The test suite covers both Member A and Member B functionality, including:

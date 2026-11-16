@@ -17,7 +17,7 @@ MySQL serves as the **source of truth** for all structured entities, transaction
 
 ### Why MySQL for FitCheck?
 1. **Strict Referential Integrity and Normalized Relational Modeling (3NF):**
-   - Enforces foreign key constraints across 8 normalized tables (`BRAND` -> `GARMENT` -> `GARMENT_SIZE` -> `GARMENT_MEASUREMENT`).
+   - Enforces foreign key constraints across 8 core normalized tables plus REVIEW_AUDIT (`BRAND` -> `GARMENT` -> `GARMENT_SIZE` -> `GARMENT_MEASUREMENT`).
    - Sizing data has cascading dependencies: deleting a garment size must cascade to its physical measurements (`ON DELETE CASCADE`), while brands and garments with purchase history are protected (`ON DELETE RESTRICT`).
 2. **Domain-Level Validation and CHECK Constraints:**
    - MySQL 8.0 natively enforces `CHECK` constraints (e.g., positive measurements `measurement_value > 0`, restricted sizing systems `('ALPHA', 'NUMERIC', 'WAIST_BASED')`, and standardized review values).

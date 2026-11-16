@@ -1,5 +1,7 @@
 # FitCheck — Academic Entity-Relationship (ER) & Relational Schema Specification
 
+> **Final submission diagrams:** [Chen ER PNG](diagrams/conceptual_er_diagram.png) and [relational schema JPEG](diagrams/relational_schema.jpeg), both including `REVIEW_AUDIT`. Earlier PDF/SVG and other relational PNG exports are retained for reference and do not represent these final raster images.
+
 ## 1. Academic Model Overview & Notation System
 
 The FitCheck database system is modeled conceptually using the formal **Chen Entity-Relationship (ER) Notation** taught in standard Computer Science DBMS curricula and mapped systematically to a **Third Normal Form (3NF) Relational Schema**.
@@ -212,13 +214,13 @@ Under formal DBMS relational translation rules (Elmasri & Navathe / Silberschatz
 
 | Deliverable | File Path | Format | Description |
 | :--- | :--- | :--- | :--- |
-| **Conceptual ER Diagram (Chen)** | [`docs/diagrams/conceptual_er_diagram.svg`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.svg) | Vector SVG | Master Chen Conceptual ERD |
-| **Conceptual ER Diagram (Print PNG)** | [`docs/diagrams/conceptual_er_diagram.png`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.png) | 200 DPI PNG | High-Resolution Print Export |
-| **Conceptual ER Diagram (Vector PDF)** | [`docs/diagrams/conceptual_er_diagram.pdf`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.pdf) | Vector PDF | Academic Print-Ready PDF |
-| **Relational Schema Diagram** | [`docs/diagrams/relational_schema_diagram.svg`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.svg) | Vector SVG | Master Logical Relational Schema |
-| **Relational Schema Diagram (Print PNG)**| [`docs/diagrams/relational_schema_diagram.png`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.png) | 200 DPI PNG | High-Resolution Print Export |
-| **Relational Schema Diagram (Vector PDF)**| [`docs/diagrams/relational_schema_diagram.pdf`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.pdf) | Vector PDF | Academic Print-Ready PDF |
-| **Entity Explanation Document** | [`docs/ENTITY_EXPLANATION.md`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/ENTITY_EXPLANATION.md) | Markdown | Formal Academic Entity Breakdown |
-| **Physical DDL SQL Specification** | [`database/fitcheck_ddl.sql`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_ddl.sql) | SQL Script | Complete DDL with Constraints |
-| **Physical DML SQL Specification** | [`database/fitcheck_dml.sql`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_dml.sql) | SQL Script | Complete Seed Data & Samples |
-| **Advanced SQL Concepts** | [`database/queries/advanced_concepts.sql`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/advanced_concepts.sql) | SQL Script | Correlated queries, CTEs, Triggers |
+| **Conceptual ER Diagram (Chen)** | [`docs/diagrams/conceptual_er_diagram.svg`](../docs/diagrams/conceptual_er_diagram.svg) | Vector SVG | Master Chen Conceptual ERD |
+| **Conceptual ER Diagram (Print PNG)** | [`docs/diagrams/conceptual_er_diagram.png`](../docs/diagrams/conceptual_er_diagram.png) | 200 DPI PNG | High-Resolution Print Export |
+| **Conceptual ER Diagram (Vector PDF)** | [`docs/diagrams/conceptual_er_diagram.pdf`](../docs/diagrams/conceptual_er_diagram.pdf) | Vector PDF | Academic Print-Ready PDF |
+| **Relational Schema Diagram** | [`docs/diagrams/relational_schema_diagram.svg`](../docs/diagrams/relational_schema_diagram.svg) | Vector SVG | Master Logical Relational Schema |
+| **Relational Schema Diagram (Print PNG)**| [`docs/diagrams/relational_schema_diagram.png`](../docs/diagrams/relational_schema_diagram.png) | 200 DPI PNG | High-Resolution Print Export |
+| **Relational Schema Diagram (Vector PDF)**| [`docs/diagrams/relational_schema_diagram.pdf`](../docs/diagrams/relational_schema_diagram.pdf) | Vector PDF | Academic Print-Ready PDF |
+| **Entity Explanation Document** | [`docs/ENTITY_EXPLANATION.md`](../docs/ENTITY_EXPLANATION.md) | Markdown | Formal Academic Entity Breakdown |
+| **Physical DDL SQL Specification** | [`database/fitcheck_ddl.sql`](../database/fitcheck_ddl.sql) | SQL Script | Complete DDL with Constraints |
+| **Physical DML SQL Specification** | [`database/fitcheck_dml.sql`](../database/fitcheck_dml.sql) | SQL Script | Complete Seed Data & Samples |
+| **Advanced SQL Concepts** | [`database/queries/advanced_concepts.sql`](../database/queries/advanced_concepts.sql) | SQL Script | Correlated queries, CTEs, Triggers |

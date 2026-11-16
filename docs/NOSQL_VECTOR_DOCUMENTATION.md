@@ -2,10 +2,10 @@
 
 This document fulfills **DBMS Level 3 Evaluation Rubric Items 4 & 9: NoSQL / Vector Database Creation (4 Marks) and NoSQL / Vector Feature RUD (7 Marks)**.
 
-- **Redis Vector Commands:** [`database/queries/vector_commands.redis`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/vector_commands.redis)
-- **Live Vector RUD Script:** [`vector-search/demo_vector_rud.py`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/vector-search/demo_vector_rud.py)
-- **Vector Schema Definition:** [`vector-search/schema.py`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/vector-search/schema.py)
-- **Vector Service Implementation:** [`backend/app/services/vector_service.py`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/backend/app/services/vector_service.py)
+- **Redis Vector Commands:** [`database/queries/vector_commands.redis`](../database/queries/vector_commands.redis)
+- **Live Vector RUD Script:** [`vector-search/demo_vector_rud.py`](../vector-search/demo_vector_rud.py)
+- **Vector Schema Definition:** [`vector-search/schema.py`](../vector-search/schema.py)
+- **Vector Service Implementation:** [`backend/app/services/vector_service.py`](../backend/app/services/vector_service.py)
 
 ---
 
@@ -67,7 +67,7 @@ FT.CREATE fit_review_idx
 
 ## 4. Vector Feature RUD Operations (Rubric Item 9 — 7 Marks)
 
-All 5 core operations are verified live in [`vector-search/demo_vector_rud.py`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/vector-search/demo_vector_rud.py):
+All 5 core operations are verified live in [`vector-search/demo_vector_rud.py`](../vector-search/demo_vector_rud.py):
 
 ### 4.1 CREATE / UPSERT Operation
 Generates a normalized 384-dimensional dense embedding vector from review text and stores the hash into Redis:

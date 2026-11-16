@@ -2,8 +2,8 @@
 
 This document fulfills **DBMS Level 3 Evaluation Rubric Item 12: Authentication Implementation & Role-Based Access Control in Database (4 Marks)**.
 
-- **Application Authentication Endpoints:** [`backend/app/api/v1/endpoints/auth.py`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/backend/app/api/v1/endpoints/auth.py)
-- **Database RBAC Script:** [`database/queries/rbac_setup.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/rbac_setup.sql)
+- **Application Authentication Endpoints:** [`backend/app/api/v1/endpoints/auth.py`](../backend/app/api/v1/endpoints/auth.py)
+- **Database RBAC Script:** [`database/queries/rbac_setup.sql`](../database/queries/rbac_setup.sql)
 
 ---
 
@@ -42,7 +42,7 @@ FitCheck enforces defense-in-depth through two distinct, decoupled security boun
 
 ### 2.1 Password Hashing & JWT Security
 - Passwords are salted and hashed using `bcrypt` (12 rounds) via `passlib[bcrypt]`. Plaintext passwords are never persisted.
-- Sessions use cryptographic JSON Web Tokens (`HS256`) containing `sub` (user_id), `email`, `role`, and expiration (`exp`).
+- Sessions use cryptographic JSON Web Tokens (`HS256`) containing `sub` (user_id), `role`, and expiration (`exp`).
 - Tokens are transmitted via `Authorization: Bearer <token>` headers.
 
 ### 2.2 Role Definitions (Minimum 2 Roles)
@@ -51,13 +51,13 @@ Enforced in database constraint `chk_user_role CHECK (role IN ('USER', 'ADMIN'))
 - **`ADMIN` Role:** System administrator. Authorized to inspect catalog metadata, audit lineages, and execute administrative functions.
 
 ### 2.3 Strict Authenticated User Privacy Guarantee
-All recommendation endpoints derive the target identity strictly from `current_user = Depends(get_current_active_user)`. The application rejects any client-supplied request-body `user_id`, preventing user spoofing.
+The recommendation endpoint uses `get_optional_user`. Standard USER requests use the signed-in identity; ADMIN requests may explicitly select a user for recommendations; unauthenticated manual-measurement recommendations are supported without access to private user history. Profile and purchase access require authentication. See `backend/app/api/v1/endpoints/recommendations.py` and the recommendation service for the enforced identity checks.
 
 ---
 
 ## 3. Database-Level Role-Based Access Control (MySQL RBAC)
 
-Documented in [`database/queries/rbac_setup.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/rbac_setup.sql):
+Documented in [`database/queries/rbac_setup.sql`](../database/queries/rbac_setup.sql):
 
 ### 3.1 Role Creation & Least-Privilege Grants
 ```sql

@@ -14,7 +14,7 @@ FitCheck is a database-driven cross-brand sizing intelligence system. It tackles
 |---|---|---|
 | **Frontend** | **Next.js 14 + TypeScript** | Responsive web UI, measurement entry, recommendation dashboard, semantic review explorer |
 | **Backend / API** | **Python FastAPI** | REST API, dimensional tolerance calculation, dual-layer authentication, vector coordination |
-| **Relational Database** | **MySQL 8.0 (InnoDB)** | Relational source of truth, 8 normalized tables, ACID transactions, CHECK constraints, FK cascades |
+| **Relational Database** | **MySQL 8.0 (InnoDB)** | Relational source of truth, 8 core normalized tables plus REVIEW_AUDIT, ACID transactions, CHECK constraints, FK cascades |
 | **Vector Database** | **Redis Stack (RediSearch)** | HNSW vector index, 384-dimensional dense review embeddings (`all-MiniLM-L6-v2`), KNN search |
 | **Database Access** | **SQLAlchemy 2.0 + PyMySQL** | Connection pooling, typed ORM models, transaction management, raw SQL execution |
 | **Security & RBAC** | **JWT + Bcrypt + MySQL Roles** | Dual-layer RBAC: FastAPI token role verification (`USER`, `ADMIN`) + database least-privilege grants |
@@ -35,7 +35,7 @@ DBMS-mini--FitCheck/
 │   ├── app/
 │   │   ├── main.py                    # Application factory, CORS, router mounting
 │   │   ├── core/                      # Config, security (JWT/bcrypt), DB & Redis connectors
-│   │   ├── models/                    # SQLAlchemy ORM models matching all 8 SQL tables
+│   │   ├── models/                    # SQLAlchemy ORM models matching the 8 core tables and REVIEW_AUDIT
 │   │   ├── schemas/                   # Pydantic request/response validation schemas
 │   │   ├── api/                       # API router & dependencies (get_db, RBAC)
 │   │   │   └── v1/endpoints/          # Auth and Health check endpoints
@@ -78,9 +78,10 @@ DBMS-mini--FitCheck/
 │   ├── database_justification.md      # Relational vs Vector polyglot justification for viva defense
 │   ├── ENTITY_EXPLANATION.md          # Comprehensive breakdown of all entities, weak entity proofs & cardinalities
 │   ├── diagrams/
-│   │   ├── conceptual_er_diagram.png  # Academic Chen Conceptual ER Diagram (High-Res 200 DPI PNG)
+│   │   ├── conceptual_er_diagram.png  # Current black-and-white Chen ER diagram (no legend)
 │   │   ├── conceptual_er_diagram.pdf  # Academic Chen Conceptual ER Diagram (Vector PDF)
 │   │   ├── conceptual_er_diagram.svg  # Scalable Vector Graphics Chen ERD (Double Rect/Diamonds/Dashed Keys)
+│   │   ├── relational_schema.jpeg     # Current relational schema, including REVIEW_AUDIT
 │   │   ├── relational_schema_diagram.png # Print-ready Logical Relational Schema Diagram (PNG)
 │   │   ├── relational_schema_diagram.pdf # Print-ready Logical Relational Schema Diagram (PDF)
 │   │   ├── relational_schema_diagram.svg # Scalable Vector Graphics Logical Relational Schema
@@ -110,63 +111,71 @@ DBMS-mini--FitCheck/
 
 ## 4. Step-by-Step Setup Instructions (Windows PowerShell)
 
-### Step 1: Environment Configuration
-Copy the template configuration to create your local `.env`:
+### Step 1: Python Environment and Configuration
+From the repository root:
 ```powershell
+python -m venv backend/.venv
+. backend/.venv/Scripts/Activate.ps1
+python -m pip install -r backend/requirements.txt
 Copy-Item .env.example .env
 ```
-Open `.env` and fill in your local MySQL root/user password and Redis configuration.
+Reuse an existing environment and `.env` if already configured. Set your local MySQL credentials and a random `SECRET_KEY` in `.env`. Keep real credentials out of Git. If a password contains URL-reserved characters, use a URL-encoded password in an explicit `DATABASE_URL`.
 
----
+### Step 2: Initialize a Disposable MySQL Database and Load Seeds
+The schema scripts drop and recreate tables. Use a fresh, disposable development database, never a database containing important records.
 
-### Step 2: Safe Database Initialization & Deterministic Seeding (MySQL)
-> **IMPORTANT SAFETY NOTICE:** The setup script `database/fitcheck_setup.sql` contains `DROP TABLE IF EXISTS` statements. Do **not** run this against an existing production database with live data.
-
-To initialize a fresh local database and load the Member A deterministic dataset:
+From the repository root, open an administrative MySQL client:
 ```powershell
-# Open MySQL Command Line Client as root or admin:
 mysql -u root -p
-
-# Within MySQL prompt, execute DDL schema setup:
-source c:/Users/Trisha V P/DBMS-mini--FitCheck/database/fitcheck_setup.sql;
-
-# Next, load deterministic Member A seed data (idempotent INSERT IGNORE):
-source c:/Users/Trisha V P/DBMS-mini--FitCheck/database/seeds/seed_data.sql;
 ```
-Or seed via the automated Python runner:
-```powershell
-python -m backend.app.scripts.seed_db
+Then run inside MySQL, in this order:
+```sql
+SOURCE database/fitcheck_ddl.sql;
+SOURCE database/seeds/seed_data.sql;
+SOURCE database/seeds/review_seeds.sql;
+SOURCE database/queries/advanced_concepts.sql;
 ```
-To verify table creation and row counts:
+The DDL creates nine tables, including `REVIEW_AUDIT`. The advanced SQL script installs the view, function, procedure, body-profile validation trigger and three review-audit triggers; it also executes disposable demonstrations. Apply it as an administrator, not as the runtime application user.
+
+For database-level RBAC, open `database/queries/rbac_setup.sql`, replace its password placeholders locally with your chosen credentials, and execute its statements in the administrative client. Do not commit those credentials. Configure `.env` to use the restricted `fitcheck_user` account. The older `database/init_dev_mysql.sql` grants broad development privileges and must not be used as evidence of least-privilege RBAC.
+
+On a clean database, the seed baseline is 10 users (including the admin), 8 body profiles, 5 brands, 14 garments, 70 sizes, 310 measurements, 30 purchases and 40 reviews. Audit demonstrations can add audit rows. Verify with:
 ```sql
 USE fitcheck;
 SHOW TABLES;
-SELECT 'USER' AS tbl, COUNT(*) FROM `USER` UNION ALL
-SELECT 'BODY_PROFILE', COUNT(*) FROM BODY_PROFILE UNION ALL
-SELECT 'BRAND', COUNT(*) FROM BRAND UNION ALL
-SELECT 'GARMENT', COUNT(*) FROM GARMENT UNION ALL
-SELECT 'GARMENT_SIZE', COUNT(*) FROM GARMENT_SIZE UNION ALL
-SELECT 'GARMENT_MEASUREMENT', COUNT(*) FROM GARMENT_MEASUREMENT UNION ALL
-SELECT 'PURCHASE', COUNT(*) FROM PURCHASE;
+SHOW TRIGGERS;
+SELECT COUNT(*) AS measurements FROM GARMENT_MEASUREMENT;
+SELECT COUNT(*) AS reviews FROM FIT_REVIEW;
 ```
-Expected output: 8 tables created; 10 users, 8 body profiles, 5 brands, 14 garments, 70 garment sizes, 310 garment measurements, 30 purchases.
+Run `SHOW TRIGGERS` as an administrator; the restricted runtime account may not be allowed to see trigger metadata.
 
----
+The alternative Python seed runner is `python -m backend.app.scripts.seed_db`. It loads both seed files but does not install the advanced SQL objects or RBAC. Stable IDs are documented in [the ID manifest](database/seeds/ID_MANIFEST.md).
 
-### Step 3: Member A ID Manifest for Cross-Team Handoff
-All stable, deterministic IDs used for users, brands, garments, sizes, measurements, and purchases are documented in [`database/seeds/ID_MANIFEST.md`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/seeds/ID_MANIFEST.md).
-Member B uses these exact IDs to link `FIT_REVIEW` records and vector embeddings.
-
----
-
-### Step 4: Backend Setup & Verification
+### Step 3: Redis Stack and Vector Ingestion
+Install Docker and start Redis Stack with RediSearch enabled:
 ```powershell
-# Run the complete automated test suite (21 unit and integration tests):
-cmd /c "set PYTHONPATH=. && pytest backend/tests"
+docker run -d --name fitcheck-redis -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+```
+If that container already exists, use `docker start fitcheck-redis` instead. If Redis Stack already runs locally, use that instance and configure `.env` accordingly. Ordinary Redis can use the application's scan fallback, but Redis Stack is required to demonstrate HNSW indexing.
 
-# Start development API server:
+With the Python environment activated and MySQL seeded:
+```powershell
+python -m backend.app.scripts.seed_vectors
+docker exec fitcheck-redis redis-cli ping
+docker exec fitcheck-redis redis-cli FT.INFO fit_review_idx
+python vector-search/demo_vector_rud.py
+```
+Expect `PONG`, an HNSW index with 384-dimensional FLOAT32 vectors and COSINE distance, and 40 indexed review vectors for the clean seed baseline. The first embedding operation may download MiniLM and require internet access. Test records can increase the counts in an existing local database.
+
+### Step 4: Backend Verification and API Server
+```powershell
+# From the repository root, with the backend environment activated:
+python -m pytest backend/tests -q
+# Latest verification: 59 passed (dependency deprecation warnings only).
 uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
 ```
+The automated suite uses SQLite and mocked Redis operations for much of its coverage. Also verify live MySQL, Redis Stack, audit triggers and the UI for the final demo.
+
 - API Base URL: `http://127.0.0.1:8000/api/v1`
 - Interactive OpenAPI Docs: `http://127.0.0.1:8000/api/v1/docs`
 - Health Check: `http://127.0.0.1:8000/api/v1/health`
@@ -199,14 +208,18 @@ npm run dev
 npm run build
 ```
 - Open browser at `http://localhost:3000`
-- Includes interactive Demo Persona selector (Priya #2, Ananya #3, Kavya #5, Lakshmi #10 [cold start])
+- Includes demo login shortcuts for Priya #2, Ananya #3 and Admin #1 (synthetic demo accounts; password `password123`)
 - Real-time cross-brand size ranking, fit verdicts, dimensional deltas, evidence citations, and body profile / purchase editors.
 
 ---
 
 ## 6. Rubric Tracking & Defense Notes
 
-Every requirement from the official PES University evaluation rubric is tracked in [`docs/rubric_tracking.md`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/rubric_tracking.md).
-Key viva talking points and technology justifications are detailed in [`docs/database_justification.md`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/database_justification.md).
-Complex SQL examples (Joins, Aggregates with HAVING, Correlated Subqueries, CTEs) are provided in [`database/queries/advanced_queries.sql`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/advanced_queries.sql).
-Advanced database concepts (Stored procedures, functions, triggers, views, transactions) are provided in [`database/queries/advanced_concepts.sql`](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/advanced_concepts.sql).
+Current submission diagrams: [Chen ER diagram](docs/diagrams/conceptual_er_diagram.png) and [relational schema](docs/diagrams/relational_schema.jpeg). `er_diagram.png` is an identical copy of the current Chen ER diagram. Existing PDF/SVG and older relational PNG variants are preserved reference assets and have not been regenerated from these final images.
+
+Real application screenshots and capture details are available in [docs/screenshots](docs/screenshots/README.md).
+
+Every requirement from the official PES University evaluation rubric is tracked in [`docs/rubric_tracking.md`](docs/rubric_tracking.md).
+Key viva talking points and technology justifications are detailed in [`docs/database_justification.md`](docs/database_justification.md).
+Complex SQL examples (Joins, Aggregates with HAVING, Correlated Subqueries, CTEs) are provided in [`database/queries/advanced_queries.sql`](database/queries/advanced_queries.sql).
+Advanced database concepts (Stored procedures, functions, triggers, views, transactions) are provided in [`database/queries/advanced_concepts.sql`](database/queries/advanced_concepts.sql).

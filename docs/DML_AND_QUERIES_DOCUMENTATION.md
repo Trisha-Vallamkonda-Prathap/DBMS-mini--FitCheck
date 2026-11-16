@@ -2,8 +2,8 @@
 
 This document fulfills **DBMS Level 3 Evaluation Rubric Items 6 & 7: DML Operations (4 Marks) and Complex SQL Queries (4 Marks)**.
 
-- **Executable SQL Script:** [`database/fitcheck_dml.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_dml.sql)
-- **Authoritative Seed Dataset:** [`database/seeds/seed_data.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/seeds/seed_data.sql) and [`database/seeds/review_seeds.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/seeds/review_seeds.sql)
+- **Executable SQL Script:** [`database/fitcheck_dml.sql`](../database/fitcheck_dml.sql)
+- **Authoritative Seed Dataset:** [`database/seeds/seed_data.sql`](../database/seeds/seed_data.sql) and [`database/seeds/review_seeds.sql`](../database/seeds/review_seeds.sql)
 
 ---
 

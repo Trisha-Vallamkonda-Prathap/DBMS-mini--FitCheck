@@ -218,9 +218,9 @@ Audit table:
 
 Trigger:
 
-`trg_fit_review_delete_audit`
+`trg_after_review_insert`, `trg_after_review_update`, `trg_after_review_delete`
 
-The trigger records deleted review information for administrative inspection.
+The three triggers record review creation, updates and deletion for administrative inspection.
 
 Admin endpoint:
 
@@ -279,7 +279,7 @@ Stable IDs are documented in:
 
 Seed data:
 
-`database/seeds/seed_data.sql`
+`database/seeds/seed_data.sql` and `database/seeds/review_seeds.sql`
 
 ---
 
@@ -293,3 +293,12 @@ Then load seed data:
 
 ```powershell
 python -m backend.app.scripts.seed_db
+```
+
+For a fresh installation, follow [the main setup guide](../README.md#4-step-by-step-setup-instructions-windows-powershell), including advanced SQL objects, RBAC and Redis vector ingestion. The Python seed runner does not install SQL triggers.
+
+## Integrated Verification
+
+The latest main-branch automated suite passed **59 tests**. Coverage includes SQLite-backed API/constraint checks, SQLite audit-trigger lifecycle checks, real MiniLM embeddings and mocked Redis lifecycle operations. These tests do not replace live MySQL trigger and Redis Stack verification.
+
+See [application screenshots](screenshots/README.md) for genuine UI evidence. The final diagram references are [the Chen ER PNG](diagrams/conceptual_er_diagram.png) and [the relational schema JPEG](diagrams/relational_schema.jpeg).

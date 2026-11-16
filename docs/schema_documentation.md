@@ -1,12 +1,14 @@
 # FitCheck — Relational Schema Documentation & Data Dictionary
 
+> **Final submission diagrams:** [Chen ER PNG](diagrams/conceptual_er_diagram.png) and [relational schema JPEG](diagrams/relational_schema.jpeg), both including `REVIEW_AUDIT`. Earlier PDF/SVG and other relational PNG exports are retained for reference and do not represent these final raster images.
+
 This document details the normalized relational database schema implemented in `database/fitcheck_setup.sql` and visualized in `docs/diagrams/dbms_mini_v4.drawio`, `docs/diagrams/er_diagram.png`, and `docs/diagrams/relational_schema.png`.
 
 ### Print-Ready Artifacts & Academic Specifications:
-- **Conceptual ER Diagram (Chen Notation):** [docs/diagrams/conceptual_er_diagram.pdf](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.pdf) | [docs/diagrams/conceptual_er_diagram.png](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.png) | [docs/diagrams/conceptual_er_diagram.svg](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/conceptual_er_diagram.svg)
-- **Relational Schema Diagram & Constraints:** [docs/diagrams/relational_schema_diagram.pdf](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.pdf) | [docs/diagrams/relational_schema_diagram.png](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.png) | [docs/diagrams/relational_schema_diagram.svg](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema_diagram.svg)
-- **Entity Explanation & Weak Entity Document:** [docs/ENTITY_EXPLANATION.md](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/ENTITY_EXPLANATION.md)
-- **Draw.io Source Diagram:** [docs/diagrams/dbms_mini_v4.drawio](file:///c:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/dbms_mini_v4.drawio)
+- **Conceptual ER Diagram (Chen Notation):** [docs/diagrams/conceptual_er_diagram.pdf](../docs/diagrams/conceptual_er_diagram.pdf) | [docs/diagrams/conceptual_er_diagram.png](../docs/diagrams/conceptual_er_diagram.png) | [docs/diagrams/conceptual_er_diagram.svg](../docs/diagrams/conceptual_er_diagram.svg)
+- **Relational Schema Diagram & Constraints:** [docs/diagrams/relational_schema_diagram.pdf](../docs/diagrams/relational_schema_diagram.pdf) | [docs/diagrams/relational_schema_diagram.png](../docs/diagrams/relational_schema_diagram.png) | [docs/diagrams/relational_schema_diagram.svg](../docs/diagrams/relational_schema_diagram.svg)
+- **Entity Explanation & Weak Entity Document:** [docs/ENTITY_EXPLANATION.md](../docs/ENTITY_EXPLANATION.md)
+- **Draw.io Source Diagram:** [docs/diagrams/dbms_mini_v4.drawio](../docs/diagrams/dbms_mini_v4.drawio)
 
 ---
 

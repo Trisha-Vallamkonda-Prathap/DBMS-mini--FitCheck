@@ -1,5 +1,7 @@
 # FitCheck — Official Final Project Demonstration & Viva Defense Guide
 
+> **Final submission diagrams:** [Chen ER PNG](diagrams/conceptual_er_diagram.png) and [relational schema JPEG](diagrams/relational_schema.jpeg), both including `REVIEW_AUDIT`. Earlier PDF/SVG and other relational PNG exports are retained for reference and do not represent these final raster images.
+
 This guide provides the complete, ordered demonstration script for the **DBMS Experiential Learning – Level 3 Project Evaluation (50 Marks Total)**.
 
 ---
@@ -9,7 +11,7 @@ This guide provides the complete, ordered demonstration script for the **DBMS Ex
 Before starting the viva presentation, confirm that MySQL, Redis, FastAPI backend, and Next.js frontend are running:
 
 ```powershell
-# In PowerShell (Repository Root: C:\Users\Trisha V P\DBMS-mini--FitCheck)
+# In PowerShell, from the repository root
 
 # 1. Check live backend health (MySQL + Redis connectivity)
 python -c "import requests; print(requests.get('http://127.0.0.1:8000/api/v1/health').json())"
@@ -26,12 +28,12 @@ python vector-search/demo_vector_rud.py
 **Rubric Items 1 & 2**
 
 ### Deliverables to Present:
-1. **Conceptual ER Diagram:** Open [`docs/diagrams/er_diagram.png`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.png) or [`docs/diagrams/er_diagram.pdf`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/er_diagram.pdf).
+1. **Conceptual ER Diagram:** Open [the final Chen ER PNG](diagrams/conceptual_er_diagram.png).
    - **Key Defense Points:**
-     - 8 entities clearly classified into Strong entities (`USER`, `BRAND`, `GARMENT`), Dependent entities (`BODY_PROFILE`, `GARMENT_SIZE`, `GARMENT_MEASUREMENT`), and Associative entities (`PURCHASE`, `FIT_REVIEW`).
+     - 8 core entities, plus the `REVIEW_AUDIT` support entity, classified into Strong entities (`USER`, `BRAND`, `GARMENT`), Dependent entities (`BODY_PROFILE`, `GARMENT_SIZE`, `GARMENT_MEASUREMENT`), and Associative entities (`PURCHASE`, `FIT_REVIEW`).
      - Explicit cardinalities (`1:0..1` for User-to-Profile, `1:N` for Brand-to-Garment, Garment-to-Size, Size-to-Measurement).
      - Strict cross-user privacy boundary: user profile and purchase tables represent private ground truth, while fit review text is synchronized to Redis for public consensus scoring.
-2. **Relational Schema Diagram:** Open [`docs/diagrams/relational_schema.png`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/docs/diagrams/relational_schema.png).
+2. **Relational Schema Diagram:** Open [the final relational schema](diagrams/relational_schema.jpeg).
    - **Key Defense Points:**
      - 3NF / BCNF normalization: Sizing conventions belong to `BRAND`; style names belong to `GARMENT`; size labels belong to `GARMENT_SIZE`; physical dimensions belong to `GARMENT_MEASUREMENT`.
      - Candidate keys: `UQ(garment_id, size_label)` and `UQ(garment_size_id, measurement_type)` prevent duplicate sizing specs at the database engine level.
@@ -43,8 +45,8 @@ python vector-search/demo_vector_rud.py
 **Rubric Items 3 & 12**
 
 ### Files to Present:
-- DDL Script: [`database/fitcheck_ddl.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_ddl.sql)
-- RBAC Script: [`database/queries/rbac_setup.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/rbac_setup.sql)
+- DDL Script: [`database/fitcheck_ddl.sql`](../database/fitcheck_ddl.sql)
+- RBAC Script: [`database/queries/rbac_setup.sql`](../database/queries/rbac_setup.sql)
 
 ### Live Commands to Execute in MySQL Client:
 ```sql
@@ -72,7 +74,7 @@ SELECT COUNT(*) FROM FIT_REVIEW;
 **Rubric Items 6 & 7**
 
 ### File to Present:
-- [`database/fitcheck_dml.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_dml.sql)
+- [`database/fitcheck_dml.sql`](../database/fitcheck_dml.sql)
 
 ### Queries to Execute Live in MySQL:
 
@@ -118,7 +120,7 @@ SELECT COUNT(*) FROM FIT_REVIEW;
 **Rubric Item 8**
 
 ### File to Present:
-- [`database/queries/advanced_concepts.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/advanced_concepts.sql)
+- [`database/queries/advanced_concepts.sql`](../database/queries/advanced_concepts.sql)
 
 ### Live Executable Demonstrations:
 
@@ -173,7 +175,7 @@ python vector-search/demo_vector_rud.py
 **Rubric Items 10 & 11**
 
 Open browser at `http://localhost:3000`:
-1. **Authentication Gate:** The application requires authentication before accessing user profile or recommendations. Sign in with demo account (`emily@example.com` / `password123`) or register a new user.
+1. **Authentication Gate:** The application requires authentication before accessing user profile or recommendations. Sign in with demo account (`priya@example.com` / `password123`) or register a new user.
 2. **Body Profile Tab:** Shows user's private body measurements (`waist`, `hip`, `thigh`, `inseam`). Updates trigger validation.
 3. **Purchase History Tab:** Displays past purchases. Notice the cascaded `Brand -> Garment -> Size` dropdown selector mapping directly to normalized `garment_size_id`.
 4. **Cross-Brand Recommendation Tab:**
@@ -193,7 +195,7 @@ To demonstrate automated test coverage to the evaluator:
 # 1. Run 8-case adversarial audit suite (Personalization, returns, cold-start, privacy boundary):
 python -m pytest backend/tests/test_recommendation_audit_cases.py -v
 
-# 2. Run full backend suite (55 tests across Member A and Member B components):
+# 2. Run full backend suite (59 tests across Member A and Member B components):
 python -m pytest backend/tests -v
 ```
-**Result:** **55 of 55 tests pass (100%)**
+**Result:** **59 of 59 tests pass (100%)**

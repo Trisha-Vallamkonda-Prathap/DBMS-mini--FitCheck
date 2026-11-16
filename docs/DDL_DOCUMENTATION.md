@@ -6,7 +6,7 @@ This document fulfills **DBMS Level 3 Project Evaluation Rubric Item 3: SQL Data
 
 ## 1. DDL Script Overview
 
-- **Source File:** [`database/fitcheck_ddl.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_ddl.sql)
+- **Source File:** [`database/fitcheck_ddl.sql`](../database/fitcheck_ddl.sql)
 - **Engine:** MySQL 8.0+ `InnoDB` (ACID compliant, foreign keys, row-level locking)
 - **Character Set / Collation:** `utf8mb4` / `utf8mb4_0900_ai_ci`
 - **Total Tables:** 9 (8 core domain tables + 1 audit lineage table)
@@ -47,7 +47,7 @@ This document fulfills **DBMS Level 3 Project Evaluation Rubric Item 3: SQL Data
 
 ## 4. DDL Operations Demonstration (`ALTER` & `DROP`)
 
-The script [`database/fitcheck_ddl.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/fitcheck_ddl.sql) includes executable DDL demonstrations verifying that schema manipulation works:
+The script [`database/fitcheck_ddl.sql`](../database/fitcheck_ddl.sql) includes executable DDL demonstrations verifying that schema manipulation works:
 
 ```sql
 -- 1. Create demonstration table

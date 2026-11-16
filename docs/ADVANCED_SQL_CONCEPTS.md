@@ -2,7 +2,7 @@
 
 This document fulfills **DBMS Level 3 Evaluation Rubric Item 8: Advanced Database Concepts (Procedure, Function, Trigger, View, Transaction, CTE, Indexing) (6 Marks)**.
 
-- **Source SQL File:** [`database/queries/advanced_concepts.sql`](file:///C:/Users/Trisha%20V%20P/DBMS-mini--FitCheck/database/queries/advanced_concepts.sql)
+- **Source SQL File:** [`database/queries/advanced_concepts.sql`](../database/queries/advanced_concepts.sql)
 
 ---
 
