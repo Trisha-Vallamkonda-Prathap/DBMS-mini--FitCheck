@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import AdminCatalogueManagement from "./admin-catalogue-management";
 import {
   Search,
   MessageSquare,
@@ -1111,6 +1112,10 @@ export default function MemberBPanel({
           ))}
         </div>
       </div>
+
+      {currentUser?.role === "ADMIN" && (
+        <AdminCatalogueManagement token={token} apiBase={API_BASE} />
+      )}
 
       {currentUser?.role === "ADMIN" && (
         <div className="glass-panel" style={{ padding: "28px" }}>

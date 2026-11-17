@@ -3,6 +3,7 @@ from backend.app.api.v1.endpoints import (
     health,
     auth,
     catalogue,
+    admin_catalogue,
     profile,
     purchases,
     recommendations,
@@ -24,3 +25,5 @@ api_router.include_router(recommendations.router, tags=["Recommendations"])
 api_router.include_router(reviews.router, tags=["Fit Reviews & Semantic Search"])
 
 api_router.include_router(review_settings.router, tags=["Review Settings"])
+
+api_router.include_router(admin_catalogue.router, tags=["Catalogue Management"])
