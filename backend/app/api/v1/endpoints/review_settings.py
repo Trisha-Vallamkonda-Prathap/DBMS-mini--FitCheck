@@ -1,8 +1,7 @@
-"""ADMIN-only, one-way widening of the existing review text attribute."""
-from typing import Literal
+"""ADMIN-only extended review storage with a byte-safe return to standard capacity."""
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StrictBool
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -14,16 +13,17 @@ from backend.app.models import User
 
 router = APIRouter()
 
-ALTER_REVIEW_TEXT = (
-    "ALTER TABLE FIT_REVIEW MODIFY COLUMN review_text MEDIUMTEXT "
-    "CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL"
-)
+ALTER_REVIEW_TEXT = {
+    False: "ALTER TABLE FIT_REVIEW MODIFY COLUMN review_text TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL",
+    True: "ALTER TABLE FIT_REVIEW MODIFY COLUMN review_text MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL",
+}
+TEXT_MAX_BYTES = 65535
 LOCK_NAME = "fitcheck.review_text.capacity"
 
 
 class ReviewCapacityUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    storage_type: Literal["MEDIUMTEXT"]
+    enabled: StrictBool
 
 
 def read_review_column(connection):
@@ -42,11 +42,11 @@ def read_review_column(connection):
     return dict(row)
 
 
-def can_widen(column):
+def supported_column(column):
     # Refuse unexpected attributes rather than silently discarding them in MODIFY.
     return (
-        column["storage_type"].lower() == "text"
-        and column["max_bytes"] == 65535
+        column["storage_type"].lower() in ("text", "mediumtext")
+        and column["max_bytes"] == {"text": TEXT_MAX_BYTES, "mediumtext": 16777215}[column["storage_type"].lower()]
         and column["nullable"] == "NO"
         and column["charset"] == "utf8mb4"
         and column["collation"] == "utf8mb4_0900_ai_ci"
@@ -59,7 +59,8 @@ def capacity_result(column):
     return {
         "storage_type": column["storage_type"].upper(),
         "max_bytes": column["max_bytes"],
-        "available_upgrades": ["MEDIUMTEXT"] if can_widen(column) else [],
+        "enabled": column["storage_type"].lower() == "mediumtext",
+        "supported": supported_column(column),
         "updates_enabled": bool(settings.REVIEW_SETTINGS_DATABASE_URL),
     }
 
@@ -96,15 +97,32 @@ def update_review_settings(
                 before = read_review_column(connection)
                 if before["database_name"] != expected_database:
                     raise HTTPException(409, "Administrative and runtime database names must match.")
-                if not can_widen(before):
-                    raise HTTPException(409, "Review capacity is already increased or the column definition is unsupported.")
+                if not supported_column(before):
+                    raise HTTPException(409, "The current review column definition is unsupported; no changes were made.")
+                target_type = "mediumtext" if request.enabled else "text"
+                if before["storage_type"].lower() == target_type:
+                    return capacity_result(before)
                 connection.execute(text("SET SESSION lock_wait_timeout = 5"))
-                # This is the only permitted ALTER. No request text is used in SQL.
-                connection.execute(text(ALTER_REVIEW_TEXT))
-                after = read_review_column(connection)
-                if after["storage_type"].lower() != "mediumtext" or after["max_bytes"] != 16777215:
-                    raise HTTPException(500, "The resulting review capacity could not be verified.")
-                return capacity_result(after)
+                table_locked = False
+                try:
+                    if not request.enabled:
+                        # Prevent inserts/updates between the byte-length check and ALTER.
+                        connection.execute(text("LOCK TABLES FIT_REVIEW WRITE"))
+                        table_locked = True
+                        largest = connection.execute(text(
+                            "SELECT COALESCE(MAX(OCTET_LENGTH(review_text)), 0) FROM FIT_REVIEW"
+                        )).scalar_one()
+                        if largest > TEXT_MAX_BYTES:
+                            raise HTTPException(409, "Extended capacity cannot be disabled because one or more existing reviews exceed standard TEXT capacity (65,535 bytes).")
+                    # Only these two complete, hard-coded ALTER statements are permitted.
+                    connection.execute(text(ALTER_REVIEW_TEXT[request.enabled]))
+                    after = read_review_column(connection)
+                    if not supported_column(after) or after["storage_type"].lower() != target_type:
+                        raise HTTPException(500, "The resulting review capacity could not be verified. Refresh the setting.")
+                    return capacity_result(after)
+                finally:
+                    if table_locked:
+                        connection.execute(text("UNLOCK TABLES"))
             finally:
                 connection.execute(text("SELECT RELEASE_LOCK(:name)"), {"name": LOCK_NAME})
     except SQLAlchemyError:

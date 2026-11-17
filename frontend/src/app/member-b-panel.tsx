@@ -100,7 +100,8 @@ export default function MemberBPanel({
   const [reviewCapacity, setReviewCapacity] = useState<{
     storage_type: string;
     max_bytes: number;
-    available_upgrades: string[];
+    enabled: boolean;
+    supported: boolean;
     updates_enabled: boolean;
   } | null>(null);
   const [capacityStatus, setCapacityStatus] = useState("");
@@ -447,20 +448,19 @@ export default function MemberBPanel({
     setAuditStatus(`${data.length} audit records loaded.`);
   };
 
-  const updateReviewCapacity = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const updateReviewCapacity = async (enabled: boolean) => {
     setCapacityUpdating(true);
     setCapacityStatus("");
     try {
       const res = await fetch(`${API_BASE}/admin/review-settings`, {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ storage_type: "MEDIUMTEXT" }),
+        body: JSON.stringify({ enabled }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Unable to update review capacity.");
       setReviewCapacity(data);
-      setCapacityStatus(`Review capacity updated to ${data.storage_type} (${Number(data.max_bytes).toLocaleString()} bytes).`);
+      setCapacityStatus(`Extended Review Capacity is now ${data.enabled ? "ON" : "OFF"}. Storage type: ${data.storage_type}.`);
     } catch (err: any) {
       setCapacityStatus(err.message);
     } finally {
@@ -1116,31 +1116,29 @@ export default function MemberBPanel({
         <div className="glass-panel" style={{ padding: "28px" }}>
           <h3 style={{ marginBottom: "12px" }}>Review Settings</h3>
           <p style={{ color: "var(--text-secondary)", marginBottom: "14px" }}>
-            Support longer, more detailed fit experiences while preserving existing reviews.
+            Enable extended storage for longer fit experiences, or return to standard capacity when all existing reviews fit.
           </p>
           {reviewCapacity && (
             <>
               <p style={{ marginBottom: "14px" }}>
-                Current review capacity: {reviewCapacity.storage_type} ({reviewCapacity.max_bytes.toLocaleString()} bytes)
+                Extended Review Capacity: {reviewCapacity.enabled ? "ON" : "OFF"}<br />
+                Storage type: {reviewCapacity.storage_type} ({reviewCapacity.max_bytes.toLocaleString()} bytes)
               </p>
               <p style={{ color: "var(--text-muted)", marginBottom: "14px", fontSize: "0.85rem" }}>
-                Capacity is measured in UTF-8 bytes; some characters use more than one byte. Capacity can only be increased.
+                Capacity is measured in UTF-8 bytes; some characters use more than one byte. Disabling extended capacity requires every existing review to fit within 65,535 bytes.
               </p>
-              {reviewCapacity.available_upgrades.length > 0 ? (
-                <form onSubmit={updateReviewCapacity} style={{ display: "flex", gap: "12px", alignItems: "end", flexWrap: "wrap" }}>
-                  <div>
-                    <label htmlFor="review-capacity" style={labelStyle}>Increase review capacity</label>
-                    <select id="review-capacity" defaultValue="MEDIUMTEXT" disabled={capacityUpdating || !reviewCapacity.updates_enabled} style={inputStyle}>
-                      <option value="MEDIUMTEXT">MEDIUMTEXT — 16,777,215 bytes</option>
-                    </select>
-                  </div>
-                  <button type="submit" disabled={capacityUpdating || !reviewCapacity.updates_enabled} style={buttonStyle}>
-                    {capacityUpdating ? "Updating..." : "Update Review Capacity"}
-                  </button>
-                </form>
-              ) : (
-                <p>No further capacity increase is available for this column definition.</p>
-              )}
+              <label htmlFor="review-capacity" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <input
+                  id="review-capacity"
+                  type="checkbox"
+                  role="switch"
+                  checked={reviewCapacity.enabled}
+                  disabled={capacityUpdating || !reviewCapacity.updates_enabled || !reviewCapacity.supported}
+                  onChange={(e) => updateReviewCapacity(e.target.checked)}
+                />
+                Extended Review Capacity{capacityUpdating ? " — Updating..." : ""}
+              </label>
+              {!reviewCapacity.supported && <p>This column definition cannot be changed safely through Review Settings.</p>}
               {!reviewCapacity.updates_enabled && (
                 <p>Capacity updates require an administrative database connection to be configured.</p>
               )}
