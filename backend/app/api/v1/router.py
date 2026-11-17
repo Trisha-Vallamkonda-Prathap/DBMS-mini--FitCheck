@@ -7,6 +7,7 @@ from backend.app.api.v1.endpoints import (
     purchases,
     recommendations,
     reviews,
+    review_settings,
 )
 
 api_router = APIRouter()
@@ -21,3 +22,5 @@ api_router.include_router(recommendations.router, tags=["Recommendations"])
 
 # Member B Endpoints
 api_router.include_router(reviews.router, tags=["Fit Reviews & Semantic Search"])
+
+api_router.include_router(review_settings.router, tags=["Review Settings"])

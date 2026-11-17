@@ -97,6 +97,37 @@ export default function MemberBPanel({
 
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditStatus, setAuditStatus] = useState("");
+  const [reviewCapacity, setReviewCapacity] = useState<{
+    storage_type: string;
+    max_bytes: number;
+    available_upgrades: string[];
+    updates_enabled: boolean;
+  } | null>(null);
+  const [capacityStatus, setCapacityStatus] = useState("");
+  const [capacityUpdating, setCapacityUpdating] = useState(false);
+
+  useEffect(() => {
+    if (!token || currentUser?.role !== "ADMIN") {
+      setReviewCapacity(null);
+      setCapacityStatus("");
+      return;
+    }
+    const controller = new AbortController();
+    fetch(`${API_BASE}/admin/review-settings`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Unable to load review settings.");
+        setReviewCapacity(data);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) setCapacityStatus(err.message);
+      });
+    return () => controller.abort();
+  }, [token, currentUser?.role]);
+
 
   useEffect(() => {
     const activeTok =
@@ -414,6 +445,27 @@ export default function MemberBPanel({
     const data = await res.json();
     setAuditLogs(data);
     setAuditStatus(`${data.length} audit records loaded.`);
+  };
+
+  const updateReviewCapacity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCapacityUpdating(true);
+    setCapacityStatus("");
+    try {
+      const res = await fetch(`${API_BASE}/admin/review-settings`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ storage_type: "MEDIUMTEXT" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Unable to update review capacity.");
+      setReviewCapacity(data);
+      setCapacityStatus(`Review capacity updated to ${data.storage_type} (${Number(data.max_bytes).toLocaleString()} bytes).`);
+    } catch (err: any) {
+      setCapacityStatus(err.message);
+    } finally {
+      setCapacityUpdating(false);
+    }
   };
 
   return (
@@ -1059,6 +1111,44 @@ export default function MemberBPanel({
           ))}
         </div>
       </div>
+
+      {currentUser?.role === "ADMIN" && (
+        <div className="glass-panel" style={{ padding: "28px" }}>
+          <h3 style={{ marginBottom: "12px" }}>Review Settings</h3>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "14px" }}>
+            Support longer, more detailed fit experiences while preserving existing reviews.
+          </p>
+          {reviewCapacity && (
+            <>
+              <p style={{ marginBottom: "14px" }}>
+                Current review capacity: {reviewCapacity.storage_type} ({reviewCapacity.max_bytes.toLocaleString()} bytes)
+              </p>
+              <p style={{ color: "var(--text-muted)", marginBottom: "14px", fontSize: "0.85rem" }}>
+                Capacity is measured in UTF-8 bytes; some characters use more than one byte. Capacity can only be increased.
+              </p>
+              {reviewCapacity.available_upgrades.length > 0 ? (
+                <form onSubmit={updateReviewCapacity} style={{ display: "flex", gap: "12px", alignItems: "end", flexWrap: "wrap" }}>
+                  <div>
+                    <label htmlFor="review-capacity" style={labelStyle}>Increase review capacity</label>
+                    <select id="review-capacity" defaultValue="MEDIUMTEXT" disabled={capacityUpdating || !reviewCapacity.updates_enabled} style={inputStyle}>
+                      <option value="MEDIUMTEXT">MEDIUMTEXT — 16,777,215 bytes</option>
+                    </select>
+                  </div>
+                  <button type="submit" disabled={capacityUpdating || !reviewCapacity.updates_enabled} style={buttonStyle}>
+                    {capacityUpdating ? "Updating..." : "Update Review Capacity"}
+                  </button>
+                </form>
+              ) : (
+                <p>No further capacity increase is available for this column definition.</p>
+              )}
+              {!reviewCapacity.updates_enabled && (
+                <p>Capacity updates require an administrative database connection to be configured.</p>
+              )}
+            </>
+          )}
+          {capacityStatus && <p role="status" style={{ marginTop: "12px", color: "var(--text-secondary)" }}>{capacityStatus}</p>}
+        </div>
+      )}
 
       <div className="glass-panel" style={{ padding: "28px" }}>
         <h3

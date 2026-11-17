@@ -27,6 +27,9 @@ class Settings(BaseSettings):
             f"@{data.get('MYSQL_HOST')}:{data.get('MYSQL_PORT')}/{data.get('MYSQL_DATABASE')}"
         )
 
+    # Separate privileged connection used only by the ADMIN review-capacity setting.
+    REVIEW_SETTINGS_DATABASE_URL: str = ""
+
     # Redis Stack Configuration
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
