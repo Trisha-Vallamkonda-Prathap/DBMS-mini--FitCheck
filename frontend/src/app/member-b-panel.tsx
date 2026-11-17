@@ -71,8 +71,14 @@ export default function MemberBPanel({
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewStatus, setReviewStatus] = useState("");
 
+  const [reviewBrands, setReviewBrands] = useState<any[]>([]);
+  const [reviewBrandId, setReviewBrandId] = useState("");
+  const [reviewGarments, setReviewGarments] = useState<any[]>([]);
+  const [reviewGarmentId, setReviewGarmentId] = useState("");
+  const [reviewSizes, setReviewSizes] = useState<any[]>([]);
+
   const [form, setForm] = useState({
-    garment_size_id: "3",
+    garment_size_id: "",
     overall_fit: "TRUE_TO_SIZE",
     waist_fit: "GOOD",
     hip_fit: "GOOD",
@@ -111,6 +117,50 @@ export default function MemberBPanel({
       setReviews([]);
     }
   }, [externalToken, externalUser]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${API_BASE}/brands`, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unable to load brands.");
+        return res.json();
+      })
+      .then(setReviewBrands)
+      .catch((err) => {
+        if (!controller.signal.aborted) setReviewStatus(err.message);
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!reviewBrandId) return;
+    const controller = new AbortController();
+    fetch(`${API_BASE}/garments?brand_id=${reviewBrandId}`, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unable to load garments.");
+        return res.json();
+      })
+      .then(setReviewGarments)
+      .catch((err) => {
+        if (!controller.signal.aborted) setReviewStatus(err.message);
+      });
+    return () => controller.abort();
+  }, [reviewBrandId]);
+
+  useEffect(() => {
+    if (!reviewGarmentId) return;
+    const controller = new AbortController();
+    fetch(`${API_BASE}/garments/${reviewGarmentId}`, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unable to load garment sizes.");
+        return res.json();
+      })
+      .then((data) => setReviewSizes(data.sizes || []))
+      .catch((err) => {
+        if (!controller.signal.aborted) setReviewStatus(err.message);
+      });
+    return () => controller.abort();
+  }, [reviewGarmentId]);
 
   const authHeaders = (activeToken?: string | null) => ({
     "Content-Type": "application/json",
@@ -230,6 +280,11 @@ export default function MemberBPanel({
 
     if (!token) {
       setReviewStatus("Login before creating a review.");
+      return;
+    }
+
+    if (!form.garment_size_id) {
+      setReviewStatus("Select a brand, garment and size before creating a review.");
       return;
     }
 
@@ -583,26 +638,64 @@ export default function MemberBPanel({
               gap: "14px",
             }}
           >
-            <div>
-              <label htmlFor="garment-size-id" style={labelStyle}>
-                Garment Size ID
-              </label>
-              <input
-                id="garment-size-id"
-                type="number"
-                min="1"
-                max="70"
-                value={form.garment_size_id}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    garment_size_id: e.target.value,
-                  })
-                }
-                placeholder="e.g. 3"
-                style={inputStyle}
-                required
-              />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>
+              <div>
+                <label htmlFor="review-brand" style={labelStyle}>Brand</label>
+                <select
+                  id="review-brand"
+                  value={reviewBrandId}
+                  onChange={(e) => {
+                    setReviewBrandId(e.target.value);
+                    setReviewGarments([]);
+                    setReviewGarmentId("");
+                    setReviewSizes([]);
+                    setForm((prev) => ({ ...prev, garment_size_id: "" }));
+                  }}
+                  style={inputStyle}
+                  required
+                >
+                  <option value="">Select brand...</option>
+                  {reviewBrands.map((brand) => (
+                    <option key={brand.brand_id} value={brand.brand_id}>{brand.brand_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="review-garment" style={labelStyle}>Garment</label>
+                <select
+                  id="review-garment"
+                  value={reviewGarmentId}
+                  onChange={(e) => {
+                    setReviewGarmentId(e.target.value);
+                    setReviewSizes([]);
+                    setForm((prev) => ({ ...prev, garment_size_id: "" }));
+                  }}
+                  disabled={reviewGarments.length === 0}
+                  style={inputStyle}
+                  required
+                >
+                  <option value="">Select garment...</option>
+                  {reviewGarments.map((garment) => (
+                    <option key={garment.garment_id} value={garment.garment_id}>{garment.garment_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="review-size" style={labelStyle}>Size</label>
+                <select
+                  id="review-size"
+                  value={form.garment_size_id}
+                  onChange={(e) => setForm((prev) => ({ ...prev, garment_size_id: e.target.value }))}
+                  disabled={reviewSizes.length === 0}
+                  style={inputStyle}
+                  required
+                >
+                  <option value="">Select size...</option>
+                  {reviewSizes.map((size) => (
+                    <option key={size.garment_size_id} value={size.garment_size_id}>{size.size_label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div
