@@ -1,0 +1,442 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4200" height="2250" viewBox="0 0 4200 2250">
+<defs><marker id="arrow" viewBox="0 0 12 10" refX="11" refY="5" markerWidth="12" markerHeight="10" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="black"/></marker></defs>
+<g font-family="Times New Roman,serif" fill="black" stroke="none">
+<rect width="4200" height="2250" fill="white"/>
+<rect x="22" y="22" width="4156" height="2206" fill="none" stroke="black" stroke-width="2"/>
+<text x="2100.0" y="80" font-size="43" text-anchor="middle" dominant-baseline="middle" font-weight="bold">FitCheck - Relational Schema</text>
+<text x="2100.0" y="126" font-size="25" text-anchor="middle" dominant-baseline="middle">All implemented columns and enforced foreign keys; arrows run from FK rows to referenced PK rows.</text>
+<path d="M22,155 L4178,155" fill="none" stroke="black" stroke-width="1.5"/>
+<g data-fk="fk_profile_user" data-source="BODY_PROFILE.user_id" data-target="USER.user_id">
+<path d="M130,1042.0 L70,1042.0 L70,290 L130,290" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_garment_brand" data-source="GARMENT.brand_id" data-target="BRAND.brand_id">
+<path d="M4070,892.0 L4140,892.0 L4140,290 L4070,290" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_size_garment" data-source="GARMENT_SIZE.garment_id" data-target="GARMENT.garment_id">
+<path d="M2990,342.0 L3200,342.0 L3200,840.0 L3370,840.0" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_measurement_size" data-source="GARMENT_MEASUREMENT.garment_size_id" data-target="GARMENT_SIZE.garment_size_id">
+<path d="M2290,1242.0 L2200,1242.0 L2200,290 L2290,290" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_purchase_size" data-source="PURCHASE.garment_size_id" data-target="GARMENT_SIZE.garment_size_id">
+<path d="M1910,394.0 L2100,394.0 L2100,278 L2290,278" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_purchase_user" data-source="PURCHASE.user_id" data-target="USER.user_id">
+<path d="M1210,342.0 L1050,342.0 L1050,280 L830,280" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_review_size" data-source="FIT_REVIEW.garment_size_id" data-target="GARMENT_SIZE.garment_size_id">
+<circle cx="2040" cy="394.0" r="6" fill="white"/>
+<circle cx="2200" cy="302" r="6" fill="white"/>
+<circle cx="2100" cy="302" r="6" fill="white"/>
+<path d="M1910,1194.0 L2040,1194.0 L2040,302 L2290,302" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-fk="fk_review_user" data-source="FIT_REVIEW.user_id" data-target="USER.user_id">
+<path d="M1210,1142.0 L930,1142.0 L930,300 L830,300" fill="none" stroke="black" stroke-width="2.2" marker-end="url(#arrow)"/>
+</g>
+<g data-table="USER">
+<rect x="130" y="200" width="700" height="394" fill="white" stroke="black" stroke-width="2"/>
+<text x="480.0" y="232.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">USER</text>
+<path d="M130,264 L830,264" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="user_id" data-flags="PK">
+<text x="148" y="290.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">user_id</text>
+<text x="445" y="290.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="812" y="290.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M130,316.0 L830,316.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="name" data-flags="">
+<text x="148" y="342.0" font-size="25" text-anchor="start" dominant-baseline="middle">name</text>
+<text x="445" y="342.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(100)</text>
+<text x="812" y="342.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,368.0 L830,368.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="email" data-flags="UQ">
+<text x="148" y="394.0" font-size="25" text-anchor="start" dominant-baseline="middle">email</text>
+<text x="445" y="394.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(255)</text>
+<text x="812" y="394.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">UQ</text>
+</g>
+<path d="M130,420.0 L830,420.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="password_hash" data-flags="">
+<text x="148" y="446.0" font-size="25" text-anchor="start" dominant-baseline="middle">password_hash</text>
+<text x="445" y="446.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(255)</text>
+<text x="812" y="446.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,472.0 L830,472.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="role" data-flags="">
+<text x="148" y="498.0" font-size="25" text-anchor="start" dominant-baseline="middle">role</text>
+<text x="445" y="498.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10)</text>
+<text x="812" y="498.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,524.0 L830,524.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="created_at" data-flags="">
+<text x="148" y="550.0" font-size="25" text-anchor="start" dominant-baseline="middle">created_at</text>
+<text x="445" y="550.0" font-size="23" text-anchor="start" dominant-baseline="middle">TIMESTAMP</text>
+<text x="812" y="550.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,576.0 L830,576.0" fill="none" stroke="black" stroke-width="0.65"/>
+</g>
+<g data-table="BODY_PROFILE">
+<rect x="130" y="900" width="700" height="649" fill="white" stroke="black" stroke-width="2"/>
+<text x="480.0" y="932.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">BODY_PROFILE</text>
+<path d="M130,964 L830,964" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="profile_id" data-flags="PK">
+<text x="148" y="990.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">profile_id</text>
+<text x="445" y="990.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="812" y="990.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M130,1016.0 L830,1016.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="user_id" data-flags="FK,UQ">
+<text x="148" y="1042.0" font-size="25" text-anchor="start" dominant-baseline="middle">user_id</text>
+<text x="445" y="1042.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="812" y="1042.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK,UQ</text>
+</g>
+<path d="M130,1068.0 L830,1068.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="height" data-flags="">
+<text x="148" y="1094.0" font-size="25" text-anchor="start" dominant-baseline="middle">height</text>
+<text x="445" y="1094.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(5,2) NULL</text>
+<text x="812" y="1094.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1120.0 L830,1120.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="waist" data-flags="">
+<text x="148" y="1146.0" font-size="25" text-anchor="start" dominant-baseline="middle">waist</text>
+<text x="445" y="1146.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(5,2) NULL</text>
+<text x="812" y="1146.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1172.0 L830,1172.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="hip" data-flags="">
+<text x="148" y="1198.0" font-size="25" text-anchor="start" dominant-baseline="middle">hip</text>
+<text x="445" y="1198.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(5,2) NULL</text>
+<text x="812" y="1198.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1224.0 L830,1224.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="thigh" data-flags="">
+<text x="148" y="1250.0" font-size="25" text-anchor="start" dominant-baseline="middle">thigh</text>
+<text x="445" y="1250.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(5,2) NULL</text>
+<text x="812" y="1250.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1276.0 L830,1276.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="inseam" data-flags="">
+<text x="148" y="1302.0" font-size="25" text-anchor="start" dominant-baseline="middle">inseam</text>
+<text x="445" y="1302.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(5,2) NULL</text>
+<text x="812" y="1302.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1328.0 L830,1328.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="preferred_fit" data-flags="">
+<text x="148" y="1354.0" font-size="25" text-anchor="start" dominant-baseline="middle">preferred_fit</text>
+<text x="445" y="1354.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20) NULL</text>
+<text x="812" y="1354.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1380.0 L830,1380.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="updated_at" data-flags="">
+<text x="148" y="1406.0" font-size="25" text-anchor="start" dominant-baseline="middle">updated_at</text>
+<text x="445" y="1406.0" font-size="23" text-anchor="start" dominant-baseline="middle">TIMESTAMP</text>
+<text x="812" y="1406.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M130,1432.0 L830,1432.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="148" y="1457" font-size="21" text-anchor="start" dominant-baseline="middle">user_id -&gt; USER(user_id)</text>
+<text x="148" y="1490" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE CASCADE; ON UPDATE CASCADE</text>
+<text x="148" y="1523" font-size="21" text-anchor="start" dominant-baseline="middle">USER (0,1) -- BODY_PROFILE (1,1)</text>
+</g>
+<g data-table="BRAND">
+<rect x="3370" y="200" width="700" height="238" fill="white" stroke="black" stroke-width="2"/>
+<text x="3720.0" y="232.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">BRAND</text>
+<path d="M3370,264 L4070,264" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="brand_id" data-flags="PK">
+<text x="3388" y="290.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">brand_id</text>
+<text x="3685" y="290.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="290.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M3370,316.0 L4070,316.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="brand_name" data-flags="UQ">
+<text x="3388" y="342.0" font-size="25" text-anchor="start" dominant-baseline="middle">brand_name</text>
+<text x="3685" y="342.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(100)</text>
+<text x="4052" y="342.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">UQ</text>
+</g>
+<path d="M3370,368.0 L4070,368.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="sizing_system" data-flags="">
+<text x="3388" y="394.0" font-size="25" text-anchor="start" dominant-baseline="middle">sizing_system</text>
+<text x="3685" y="394.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20)</text>
+<text x="4052" y="394.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,420.0 L4070,420.0" fill="none" stroke="black" stroke-width="0.65"/>
+</g>
+<g data-table="GARMENT">
+<rect x="3370" y="750" width="700" height="493" fill="white" stroke="black" stroke-width="2"/>
+<text x="3720.0" y="782.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">GARMENT</text>
+<path d="M3370,814 L4070,814" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="garment_id" data-flags="PK">
+<text x="3388" y="840.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">garment_id</text>
+<text x="3685" y="840.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="840.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M3370,866.0 L4070,866.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="brand_id" data-flags="FK">
+<text x="3388" y="892.0" font-size="25" text-anchor="start" dominant-baseline="middle">brand_id</text>
+<text x="3685" y="892.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="892.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK</text>
+</g>
+<path d="M3370,918.0 L4070,918.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_name" data-flags="">
+<text x="3388" y="944.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_name</text>
+<text x="3685" y="944.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(150)</text>
+<text x="4052" y="944.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,970.0 L4070,970.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_category" data-flags="">
+<text x="3388" y="996.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_category</text>
+<text x="3685" y="996.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(30)</text>
+<text x="4052" y="996.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1022.0 L4070,1022.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="fit_type" data-flags="">
+<text x="3388" y="1048.0" font-size="25" text-anchor="start" dominant-baseline="middle">fit_type</text>
+<text x="3685" y="1048.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(30)</text>
+<text x="4052" y="1048.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1074.0 L4070,1074.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="description" data-flags="">
+<text x="3388" y="1100.0" font-size="25" text-anchor="start" dominant-baseline="middle">description</text>
+<text x="3685" y="1100.0" font-size="23" text-anchor="start" dominant-baseline="middle">TEXT NULL</text>
+<text x="4052" y="1100.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1126.0 L4070,1126.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="3388" y="1151" font-size="21" text-anchor="start" dominant-baseline="middle">brand_id -&gt; BRAND(brand_id)</text>
+<text x="3388" y="1184" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="3388" y="1217" font-size="21" text-anchor="start" dominant-baseline="middle">BRAND (0,N) -- GARMENT (1,1)</text>
+</g>
+<g data-table="GARMENT_SIZE">
+<rect x="2290" y="200" width="700" height="370" fill="white" stroke="black" stroke-width="2"/>
+<text x="2640.0" y="232.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">GARMENT_SIZE</text>
+<path d="M2290,264 L2990,264" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="garment_size_id" data-flags="PK">
+<text x="2308" y="290.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">garment_size_id</text>
+<text x="2605" y="290.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="2972" y="290.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M2290,316.0 L2990,316.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_id" data-flags="FK,UQ1">
+<text x="2308" y="342.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_id</text>
+<text x="2605" y="342.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="2972" y="342.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK,UQ1</text>
+</g>
+<path d="M2290,368.0 L2990,368.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="size_label" data-flags="UQ1">
+<text x="2308" y="394.0" font-size="25" text-anchor="start" dominant-baseline="middle">size_label</text>
+<text x="2605" y="394.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20)</text>
+<text x="2972" y="394.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">UQ1</text>
+</g>
+<path d="M2290,420.0 L2990,420.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="2308" y="445" font-size="21" text-anchor="start" dominant-baseline="middle">UNIQUE (garment_id, size_label)</text>
+<text x="2308" y="478" font-size="21" text-anchor="start" dominant-baseline="middle">garment_id -&gt; GARMENT(garment_id)</text>
+<text x="2308" y="511" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="2308" y="544" font-size="21" text-anchor="start" dominant-baseline="middle">GARMENT (0,N) -- GARMENT_SIZE (1,1)</text>
+</g>
+<g data-table="GARMENT_MEASUREMENT">
+<rect x="2290" y="1100" width="700" height="474" fill="white" stroke="black" stroke-width="2"/>
+<text x="2640.0" y="1132.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">GARMENT_MEASUREMENT</text>
+<path d="M2290,1164 L2990,1164" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="measurement_id" data-flags="PK">
+<text x="2308" y="1190.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">measurement_id</text>
+<text x="2605" y="1190.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="2972" y="1190.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M2290,1216.0 L2990,1216.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_size_id" data-flags="FK,UQ1">
+<text x="2308" y="1242.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_size_id</text>
+<text x="2605" y="1242.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="2972" y="1242.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK,UQ1</text>
+</g>
+<path d="M2290,1268.0 L2990,1268.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="measurement_type" data-flags="UQ1">
+<text x="2308" y="1294.0" font-size="25" text-anchor="start" dominant-baseline="middle">measurement_type</text>
+<text x="2605" y="1294.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20)</text>
+<text x="2972" y="1294.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">UQ1</text>
+</g>
+<path d="M2290,1320.0 L2990,1320.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="measurement_value" data-flags="">
+<text x="2308" y="1346.0" font-size="25" text-anchor="start" dominant-baseline="middle">measurement_value</text>
+<text x="2605" y="1346.0" font-size="23" text-anchor="start" dominant-baseline="middle">DECIMAL(6,2)</text>
+<text x="2972" y="1346.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M2290,1372.0 L2990,1372.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="unit" data-flags="">
+<text x="2308" y="1398.0" font-size="25" text-anchor="start" dominant-baseline="middle">unit</text>
+<text x="2605" y="1398.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(5)</text>
+<text x="2972" y="1398.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M2290,1424.0 L2990,1424.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="2308" y="1449" font-size="21" text-anchor="start" dominant-baseline="middle">UNIQUE (garment_size_id, measurement_type)</text>
+<text x="2308" y="1482" font-size="21" text-anchor="start" dominant-baseline="middle">garment_size_id -&gt; GARMENT_SIZE(garment_size_id)</text>
+<text x="2308" y="1515" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE CASCADE; ON UPDATE CASCADE</text>
+<text x="2308" y="1548" font-size="21" text-anchor="start" dominant-baseline="middle">GARMENT_SIZE (0,N) -- GARMENT_MEASUREMENT (1,1)</text>
+</g>
+<g data-table="PURCHASE">
+<rect x="1210" y="200" width="700" height="644" fill="white" stroke="black" stroke-width="2"/>
+<text x="1560.0" y="232.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">PURCHASE</text>
+<path d="M1210,264 L1910,264" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="purchase_id" data-flags="PK">
+<text x="1228" y="290.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">purchase_id</text>
+<text x="1525" y="290.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="290.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M1210,316.0 L1910,316.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="user_id" data-flags="FK">
+<text x="1228" y="342.0" font-size="25" text-anchor="start" dominant-baseline="middle">user_id</text>
+<text x="1525" y="342.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="342.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK</text>
+</g>
+<path d="M1210,368.0 L1910,368.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_size_id" data-flags="FK">
+<text x="1228" y="394.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_size_id</text>
+<text x="1525" y="394.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="394.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK</text>
+</g>
+<path d="M1210,420.0 L1910,420.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="purchase_date" data-flags="">
+<text x="1228" y="446.0" font-size="25" text-anchor="start" dominant-baseline="middle">purchase_date</text>
+<text x="1525" y="446.0" font-size="23" text-anchor="start" dominant-baseline="middle">DATE</text>
+<text x="1892" y="446.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,472.0 L1910,472.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="outcome" data-flags="">
+<text x="1228" y="498.0" font-size="25" text-anchor="start" dominant-baseline="middle">outcome</text>
+<text x="1525" y="498.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10)</text>
+<text x="1892" y="498.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,524.0 L1910,524.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="fit_satisfaction" data-flags="">
+<text x="1228" y="550.0" font-size="25" text-anchor="start" dominant-baseline="middle">fit_satisfaction</text>
+<text x="1525" y="550.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10) NULL</text>
+<text x="1892" y="550.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,576.0 L1910,576.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="fit_preference" data-flags="">
+<text x="1228" y="602.0" font-size="25" text-anchor="start" dominant-baseline="middle">fit_preference</text>
+<text x="1525" y="602.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20) NULL</text>
+<text x="1892" y="602.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,628.0 L1910,628.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="1228" y="653" font-size="21" text-anchor="start" dominant-baseline="middle">garment_size_id -&gt; GARMENT_SIZE(garment_size_id)</text>
+<text x="1228" y="686" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="1228" y="719" font-size="21" text-anchor="start" dominant-baseline="middle">GARMENT_SIZE (0,N) -- PURCHASE (1,1)</text>
+<text x="1228" y="752" font-size="21" text-anchor="start" dominant-baseline="middle">user_id -&gt; USER(user_id)</text>
+<text x="1228" y="785" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="1228" y="818" font-size="21" text-anchor="start" dominant-baseline="middle">USER (0,N) -- PURCHASE (1,1)</text>
+</g>
+<g data-table="FIT_REVIEW">
+<rect x="1210" y="1000" width="700" height="800" fill="white" stroke="black" stroke-width="2"/>
+<text x="1560.0" y="1032.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">FIT_REVIEW</text>
+<path d="M1210,1064 L1910,1064" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="review_id" data-flags="PK">
+<text x="1228" y="1090.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">review_id</text>
+<text x="1525" y="1090.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="1090.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M1210,1116.0 L1910,1116.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="user_id" data-flags="FK">
+<text x="1228" y="1142.0" font-size="25" text-anchor="start" dominant-baseline="middle">user_id</text>
+<text x="1525" y="1142.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="1142.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK</text>
+</g>
+<path d="M1210,1168.0 L1910,1168.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="garment_size_id" data-flags="FK">
+<text x="1228" y="1194.0" font-size="25" text-anchor="start" dominant-baseline="middle">garment_size_id</text>
+<text x="1525" y="1194.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="1892" y="1194.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">FK</text>
+</g>
+<path d="M1210,1220.0 L1910,1220.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="overall_fit" data-flags="">
+<text x="1228" y="1246.0" font-size="25" text-anchor="start" dominant-baseline="middle">overall_fit</text>
+<text x="1525" y="1246.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20)</text>
+<text x="1892" y="1246.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1272.0 L1910,1272.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="waist_fit" data-flags="">
+<text x="1228" y="1298.0" font-size="25" text-anchor="start" dominant-baseline="middle">waist_fit</text>
+<text x="1525" y="1298.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10) NULL</text>
+<text x="1892" y="1298.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1324.0 L1910,1324.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="hip_fit" data-flags="">
+<text x="1228" y="1350.0" font-size="25" text-anchor="start" dominant-baseline="middle">hip_fit</text>
+<text x="1525" y="1350.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10) NULL</text>
+<text x="1892" y="1350.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1376.0 L1910,1376.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="thigh_fit" data-flags="">
+<text x="1228" y="1402.0" font-size="25" text-anchor="start" dominant-baseline="middle">thigh_fit</text>
+<text x="1525" y="1402.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10) NULL</text>
+<text x="1892" y="1402.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1428.0 L1910,1428.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="length_fit" data-flags="">
+<text x="1228" y="1454.0" font-size="25" text-anchor="start" dominant-baseline="middle">length_fit</text>
+<text x="1525" y="1454.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(10) NULL</text>
+<text x="1892" y="1454.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1480.0 L1910,1480.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="review_text" data-flags="">
+<text x="1228" y="1506.0" font-size="25" text-anchor="start" dominant-baseline="middle">review_text</text>
+<text x="1525" y="1506.0" font-size="23" text-anchor="start" dominant-baseline="middle">TEXT</text>
+<text x="1892" y="1506.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1532.0 L1910,1532.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="created_at" data-flags="">
+<text x="1228" y="1558.0" font-size="25" text-anchor="start" dominant-baseline="middle">created_at</text>
+<text x="1525" y="1558.0" font-size="23" text-anchor="start" dominant-baseline="middle">TIMESTAMP</text>
+<text x="1892" y="1558.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M1210,1584.0 L1910,1584.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="1228" y="1609" font-size="21" text-anchor="start" dominant-baseline="middle">garment_size_id -&gt; GARMENT_SIZE(garment_size_id)</text>
+<text x="1228" y="1642" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="1228" y="1675" font-size="21" text-anchor="start" dominant-baseline="middle">GARMENT_SIZE (0,N) -- FIT_REVIEW (1,1)</text>
+<text x="1228" y="1708" font-size="21" text-anchor="start" dominant-baseline="middle">user_id -&gt; USER(user_id)</text>
+<text x="1228" y="1741" font-size="21" text-anchor="start" dominant-baseline="middle">ON DELETE RESTRICT; ON UPDATE CASCADE</text>
+<text x="1228" y="1774" font-size="21" text-anchor="start" dominant-baseline="middle">USER (0,N) -- FIT_REVIEW (1,1)</text>
+</g>
+<g data-table="REVIEW_AUDIT">
+<rect x="3370" y="1550" width="700" height="460" fill="white" stroke="black" stroke-width="2"/>
+<text x="3720.0" y="1582.0" font-size="32" text-anchor="middle" dominant-baseline="middle" font-weight="bold">REVIEW_AUDIT</text>
+<path d="M3370,1614 L4070,1614" fill="none" stroke="black" stroke-width="1.7"/>
+<g data-column="audit_id" data-flags="PK">
+<text x="3388" y="1640.0" font-size="25" text-anchor="start" dominant-baseline="middle" text-decoration="underline">audit_id</text>
+<text x="3685" y="1640.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="1640.0" font-size="22" text-anchor="end" dominant-baseline="middle" font-weight="bold">PK</text>
+</g>
+<path d="M3370,1666.0 L4070,1666.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="review_id" data-flags="">
+<text x="3388" y="1692.0" font-size="25" text-anchor="start" dominant-baseline="middle">review_id</text>
+<text x="3685" y="1692.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="1692.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1718.0 L4070,1718.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="action" data-flags="">
+<text x="3388" y="1744.0" font-size="25" text-anchor="start" dominant-baseline="middle">action</text>
+<text x="3685" y="1744.0" font-size="23" text-anchor="start" dominant-baseline="middle">VARCHAR(20)</text>
+<text x="4052" y="1744.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1770.0 L4070,1770.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="user_id" data-flags="">
+<text x="3388" y="1796.0" font-size="25" text-anchor="start" dominant-baseline="middle">user_id</text>
+<text x="3685" y="1796.0" font-size="23" text-anchor="start" dominant-baseline="middle">INT</text>
+<text x="4052" y="1796.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1822.0 L4070,1822.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="changed_at" data-flags="">
+<text x="3388" y="1848.0" font-size="25" text-anchor="start" dominant-baseline="middle">changed_at</text>
+<text x="3685" y="1848.0" font-size="23" text-anchor="start" dominant-baseline="middle">TIMESTAMP NULL</text>
+<text x="4052" y="1848.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1874.0 L4070,1874.0" fill="none" stroke="black" stroke-width="0.65"/>
+<g data-column="details" data-flags="">
+<text x="3388" y="1900.0" font-size="25" text-anchor="start" dominant-baseline="middle">details</text>
+<text x="3685" y="1900.0" font-size="23" text-anchor="start" dominant-baseline="middle">TEXT NULL</text>
+<text x="4052" y="1900.0" font-size="22" text-anchor="end" dominant-baseline="middle"></text>
+</g>
+<path d="M3370,1926.0 L4070,1926.0" fill="none" stroke="black" stroke-width="0.65"/>
+<text x="3388" y="1951" font-size="21" text-anchor="start" dominant-baseline="middle">review_id / user_id are historical identifiers, not FKs.</text>
+<text x="3388" y="1984" font-size="21" text-anchor="start" dominant-baseline="middle">Audit records survive deletion of the original review.</text>
+</g>
+<text x="2100" y="2120" font-size="25" text-anchor="middle" dominant-baseline="middle">PK = primary key; FK = enforced foreign key; UQ = single-column UNIQUE. UQ1 marks the two columns in one composite UNIQUE constraint.</text>
+<text x="2100" y="2160" font-size="25" text-anchor="middle" dominant-baseline="middle">NULL is shown explicitly; every other column is NOT NULL. No composite primary keys and no identifying relationships are implemented.</text>
+<text x="2100" y="2200" font-size="25" text-anchor="middle" dominant-baseline="middle">The notes make optional participation explicit; the Chen diagram shows the same design with 1/N labels and participation lines.</text>
+</g></svg>

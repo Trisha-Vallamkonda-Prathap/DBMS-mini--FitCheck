@@ -1,0 +1,953 @@
+{
+  "BODY_PROFILE": {
+    "columns": [
+      {
+        "COLUMN_NAME": "profile_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "height",
+        "COLUMN_TYPE": "decimal(5,2)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "waist",
+        "COLUMN_TYPE": "decimal(5,2)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "hip",
+        "COLUMN_TYPE": "decimal(5,2)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "thigh",
+        "COLUMN_TYPE": "decimal(5,2)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 6
+      },
+      {
+        "COLUMN_NAME": "inseam",
+        "COLUMN_TYPE": "decimal(5,2)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 7
+      },
+      {
+        "COLUMN_NAME": "preferred_fit",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 8
+      },
+      {
+        "COLUMN_NAME": "updated_at",
+        "COLUMN_TYPE": "timestamp",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+        "EXTRA": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 9
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "profile_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_body_profile_user",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "user_id",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "fk_profile_user",
+        "REFERENCED_TABLE_NAME": "user",
+        "REFERENCED_COLUMN_NAME": "user_id",
+        "DELETE_RULE": "CASCADE",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": 1,
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_profile_height",
+        "CHECK_CLAUSE": "((`height` is null) or (`height` > 0))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_profile_waist",
+        "CHECK_CLAUSE": "((`waist` is null) or (`waist` > 0))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_profile_hip",
+        "CHECK_CLAUSE": "((`hip` is null) or (`hip` > 0))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_profile_thigh",
+        "CHECK_CLAUSE": "((`thigh` is null) or (`thigh` > 0))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_profile_inseam",
+        "CHECK_CLAUSE": "((`inseam` is null) or (`inseam` > 0))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_profile_fit",
+        "CHECK_CLAUSE": "((`preferred_fit` is null) or (`preferred_fit` in (_cp850\\'TIGHT\\',_cp850\\'REGULAR\\',_cp850\\'RELAXED\\')))"
+      }
+    ],
+    "ddl": "CREATE TABLE `body_profile` (\n  `profile_id` int NOT NULL AUTO_INCREMENT,\n  `user_id` int NOT NULL,\n  `height` decimal(5,2) DEFAULT NULL,\n  `waist` decimal(5,2) DEFAULT NULL,\n  `hip` decimal(5,2) DEFAULT NULL,\n  `thigh` decimal(5,2) DEFAULT NULL,\n  `inseam` decimal(5,2) DEFAULT NULL,\n  `preferred_fit` varchar(20) DEFAULT NULL,\n  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`profile_id`),\n  UNIQUE KEY `uq_body_profile_user` (`user_id`),\n  CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_profile_fit` CHECK (((`preferred_fit` is null) or (`preferred_fit` in (_cp850'TIGHT',_cp850'REGULAR',_cp850'RELAXED')))),\n  CONSTRAINT `chk_profile_height` CHECK (((`height` is null) or (`height` > 0))),\n  CONSTRAINT `chk_profile_hip` CHECK (((`hip` is null) or (`hip` > 0))),\n  CONSTRAINT `chk_profile_inseam` CHECK (((`inseam` is null) or (`inseam` > 0))),\n  CONSTRAINT `chk_profile_thigh` CHECK (((`thigh` is null) or (`thigh` > 0))),\n  CONSTRAINT `chk_profile_waist` CHECK (((`waist` is null) or (`waist` > 0)))\n) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "BRAND": {
+    "columns": [
+      {
+        "COLUMN_NAME": "brand_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "brand_name",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "sizing_system",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "brand_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_brand_name",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "brand_name",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_brand_sizing",
+        "CHECK_CLAUSE": "(`sizing_system` in (_cp850\\'ALPHA\\',_cp850\\'NUMERIC\\',_cp850\\'WAIST_BASED\\'))"
+      }
+    ],
+    "ddl": "CREATE TABLE `brand` (\n  `brand_id` int NOT NULL AUTO_INCREMENT,\n  `brand_name` varchar(100) NOT NULL,\n  `sizing_system` varchar(20) NOT NULL,\n  PRIMARY KEY (`brand_id`),\n  UNIQUE KEY `uq_brand_name` (`brand_name`),\n  CONSTRAINT `chk_brand_sizing` CHECK ((`sizing_system` in (_cp850'ALPHA',_cp850'NUMERIC',_cp850'WAIST_BASED')))\n) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "FIT_REVIEW": {
+    "columns": [
+      {
+        "COLUMN_NAME": "review_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "overall_fit",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "waist_fit",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "hip_fit",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 6
+      },
+      {
+        "COLUMN_NAME": "thigh_fit",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 7
+      },
+      {
+        "COLUMN_NAME": "length_fit",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 8
+      },
+      {
+        "COLUMN_NAME": "review_text",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 9
+      },
+      {
+        "COLUMN_NAME": "created_at",
+        "COLUMN_TYPE": "timestamp",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+        "EXTRA": "DEFAULT_GENERATED",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 10
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "review_id",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "CONSTRAINT_NAME": "fk_review_size",
+        "REFERENCED_TABLE_NAME": "garment_size",
+        "REFERENCED_COLUMN_NAME": "garment_size_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "fk_review_user",
+        "REFERENCED_TABLE_NAME": "user",
+        "REFERENCED_COLUMN_NAME": "user_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_review_hip_fit",
+        "CHECK_CLAUSE": "((`hip_fit` is null) or (`hip_fit` in (_utf8mb4\\'TIGHT\\',_utf8mb4\\'GOOD\\',_utf8mb4\\'LOOSE\\')))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_review_length_fit",
+        "CHECK_CLAUSE": "((`length_fit` is null) or (`length_fit` in (_utf8mb4\\'SHORT\\',_utf8mb4\\'GOOD\\',_utf8mb4\\'LONG\\')))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_review_overall_fit",
+        "CHECK_CLAUSE": "(`overall_fit` in (_utf8mb4\\'TOO_SMALL\\',_utf8mb4\\'SLIGHTLY_SMALL\\',_utf8mb4\\'TRUE_TO_SIZE\\',_utf8mb4\\'SLIGHTLY_LARGE\\',_utf8mb4\\'TOO_LARGE\\'))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_review_text",
+        "CHECK_CLAUSE": "(char_length(trim(`review_text`)) > 0)"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_review_thigh_fit",
+        "CHECK_CLAUSE": "((`thigh_fit` is null) or (`thigh_fit` in (_utf8mb4\\'TIGHT\\',_utf8mb4\\'GOOD\\',_utf8mb4\\'LOOSE\\')))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_review_waist_fit",
+        "CHECK_CLAUSE": "((`waist_fit` is null) or (`waist_fit` in (_utf8mb4\\'TIGHT\\',_utf8mb4\\'GOOD\\',_utf8mb4\\'LOOSE\\')))"
+      }
+    ],
+    "ddl": "CREATE TABLE `fit_review` (\n  `review_id` int NOT NULL AUTO_INCREMENT,\n  `user_id` int NOT NULL,\n  `garment_size_id` int NOT NULL,\n  `overall_fit` varchar(20) NOT NULL,\n  `waist_fit` varchar(10) DEFAULT NULL,\n  `hip_fit` varchar(10) DEFAULT NULL,\n  `thigh_fit` varchar(10) DEFAULT NULL,\n  `length_fit` varchar(10) DEFAULT NULL,\n  `review_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,\n  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`review_id`),\n  KEY `idx_review_user` (`user_id`),\n  KEY `idx_review_size` (`garment_size_id`),\n  CONSTRAINT `fk_review_size` FOREIGN KEY (`garment_size_id`) REFERENCES `garment_size` (`garment_size_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `fk_review_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_review_hip_fit` CHECK (((`hip_fit` is null) or (`hip_fit` in (_utf8mb4'TIGHT',_utf8mb4'GOOD',_utf8mb4'LOOSE')))),\n  CONSTRAINT `chk_review_length_fit` CHECK (((`length_fit` is null) or (`length_fit` in (_utf8mb4'SHORT',_utf8mb4'GOOD',_utf8mb4'LONG')))),\n  CONSTRAINT `chk_review_overall_fit` CHECK ((`overall_fit` in (_utf8mb4'TOO_SMALL',_utf8mb4'SLIGHTLY_SMALL',_utf8mb4'TRUE_TO_SIZE',_utf8mb4'SLIGHTLY_LARGE',_utf8mb4'TOO_LARGE'))),\n  CONSTRAINT `chk_review_text` CHECK ((char_length(trim(`review_text`)) > 0)),\n  CONSTRAINT `chk_review_thigh_fit` CHECK (((`thigh_fit` is null) or (`thigh_fit` in (_utf8mb4'TIGHT',_utf8mb4'GOOD',_utf8mb4'LOOSE')))),\n  CONSTRAINT `chk_review_waist_fit` CHECK (((`waist_fit` is null) or (`waist_fit` in (_utf8mb4'TIGHT',_utf8mb4'GOOD',_utf8mb4'LOOSE'))))\n) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "GARMENT": {
+    "columns": [
+      {
+        "COLUMN_NAME": "garment_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "brand_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "garment_name",
+        "COLUMN_TYPE": "varchar(150)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "garment_category",
+        "COLUMN_TYPE": "varchar(30)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "fit_type",
+        "COLUMN_TYPE": "varchar(30)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "description",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 6
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "garment_id",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "brand_id",
+        "CONSTRAINT_NAME": "fk_garment_brand",
+        "REFERENCED_TABLE_NAME": "brand",
+        "REFERENCED_COLUMN_NAME": "brand_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_garment_category",
+        "CHECK_CLAUSE": "(`garment_category` in (_cp850\\'Jeans\\',_cp850\\'Trousers\\'))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_garment_fit",
+        "CHECK_CLAUSE": "(`fit_type` in (_cp850\\'STRAIGHT\\',_cp850\\'SLIM\\',_cp850\\'SKINNY\\',_cp850\\'WIDE_LEG\\',_cp850\\'RELAXED\\',_cp850\\'BOOTCUT\\',_cp850\\'FLARED\\',_cp850\\'OTHER\\'))"
+      }
+    ],
+    "ddl": "CREATE TABLE `garment` (\n  `garment_id` int NOT NULL AUTO_INCREMENT,\n  `brand_id` int NOT NULL,\n  `garment_name` varchar(150) NOT NULL,\n  `garment_category` varchar(30) NOT NULL,\n  `fit_type` varchar(30) NOT NULL,\n  `description` text,\n  PRIMARY KEY (`garment_id`),\n  KEY `idx_garment_brand` (`brand_id`),\n  CONSTRAINT `fk_garment_brand` FOREIGN KEY (`brand_id`) REFERENCES `brand` (`brand_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_garment_category` CHECK ((`garment_category` in (_cp850'Jeans',_cp850'Trousers'))),\n  CONSTRAINT `chk_garment_fit` CHECK ((`fit_type` in (_cp850'STRAIGHT',_cp850'SLIM',_cp850'SKINNY',_cp850'WIDE_LEG',_cp850'RELAXED',_cp850'BOOTCUT',_cp850'FLARED',_cp850'OTHER')))\n) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "GARMENT_MEASUREMENT": {
+    "columns": [
+      {
+        "COLUMN_NAME": "measurement_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "measurement_type",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "measurement_value",
+        "COLUMN_TYPE": "decimal(6,2)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "unit",
+        "COLUMN_TYPE": "varchar(5)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "cm",
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 5
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "measurement_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_size_measurement",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "garment_size_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_size_measurement",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "measurement_type",
+        "ORDINAL_POSITION": 2
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "CONSTRAINT_NAME": "fk_measurement_size",
+        "REFERENCED_TABLE_NAME": "garment_size",
+        "REFERENCED_COLUMN_NAME": "garment_size_id",
+        "DELETE_RULE": "CASCADE",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_measurement_type",
+        "CHECK_CLAUSE": "(`measurement_type` in (_cp850\\'waist\\',_cp850\\'hip\\',_cp850\\'thigh\\',_cp850\\'inseam\\',_cp850\\'rise\\'))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_measurement_value",
+        "CHECK_CLAUSE": "(`measurement_value` > 0)"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_measurement_unit",
+        "CHECK_CLAUSE": "(`unit` in (_cp850\\'cm\\',_cp850\\'in\\'))"
+      }
+    ],
+    "ddl": "CREATE TABLE `garment_measurement` (\n  `measurement_id` int NOT NULL AUTO_INCREMENT,\n  `garment_size_id` int NOT NULL,\n  `measurement_type` varchar(20) NOT NULL,\n  `measurement_value` decimal(6,2) NOT NULL,\n  `unit` varchar(5) NOT NULL DEFAULT 'cm',\n  PRIMARY KEY (`measurement_id`),\n  UNIQUE KEY `uq_size_measurement` (`garment_size_id`,`measurement_type`),\n  KEY `idx_measurement_size` (`garment_size_id`),\n  CONSTRAINT `fk_measurement_size` FOREIGN KEY (`garment_size_id`) REFERENCES `garment_size` (`garment_size_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `chk_measurement_type` CHECK ((`measurement_type` in (_cp850'waist',_cp850'hip',_cp850'thigh',_cp850'inseam',_cp850'rise'))),\n  CONSTRAINT `chk_measurement_unit` CHECK ((`unit` in (_cp850'cm',_cp850'in'))),\n  CONSTRAINT `chk_measurement_value` CHECK ((`measurement_value` > 0))\n) ENGINE=InnoDB AUTO_INCREMENT=881 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "GARMENT_SIZE": {
+    "columns": [
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "garment_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "size_label",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "garment_size_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_garment_size",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "garment_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_garment_size",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "size_label",
+        "ORDINAL_POSITION": 2
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "garment_id",
+        "CONSTRAINT_NAME": "fk_size_garment",
+        "REFERENCED_TABLE_NAME": "garment",
+        "REFERENCED_COLUMN_NAME": "garment_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [],
+    "ddl": "CREATE TABLE `garment_size` (\n  `garment_size_id` int NOT NULL AUTO_INCREMENT,\n  `garment_id` int NOT NULL,\n  `size_label` varchar(20) NOT NULL,\n  PRIMARY KEY (`garment_size_id`),\n  UNIQUE KEY `uq_garment_size` (`garment_id`,`size_label`),\n  KEY `idx_garment_size_garment` (`garment_id`),\n  CONSTRAINT `fk_size_garment` FOREIGN KEY (`garment_id`) REFERENCES `garment` (`garment_id`) ON DELETE RESTRICT ON UPDATE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=76 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "PURCHASE": {
+    "columns": [
+      {
+        "COLUMN_NAME": "purchase_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "purchase_date",
+        "COLUMN_TYPE": "date",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "curdate()",
+        "EXTRA": "DEFAULT_GENERATED",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "outcome",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "fit_satisfaction",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 6
+      },
+      {
+        "COLUMN_NAME": "fit_preference",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 7
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "purchase_id",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [
+      {
+        "COLUMN_NAME": "garment_size_id",
+        "CONSTRAINT_NAME": "fk_purchase_size",
+        "REFERENCED_TABLE_NAME": "garment_size",
+        "REFERENCED_COLUMN_NAME": "garment_size_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "fk_purchase_user",
+        "REFERENCED_TABLE_NAME": "user",
+        "REFERENCED_COLUMN_NAME": "user_id",
+        "DELETE_RULE": "RESTRICT",
+        "UPDATE_RULE": "CASCADE",
+        "parent_min_children": 0,
+        "parent_max_children": "N",
+        "child_min_parents": 1,
+        "child_max_parents": 1
+      }
+    ],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_purchase_outcome",
+        "CHECK_CLAUSE": "(`outcome` in (_cp850\\'KEPT\\',_cp850\\'RETURNED\\',_cp850\\'EXCHANGED\\'))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_purchase_satisfaction",
+        "CHECK_CLAUSE": "((`fit_satisfaction` is null) or (`fit_satisfaction` in (_cp850\\'GOOD\\',_cp850\\'AVERAGE\\',_cp850\\'POOR\\')))"
+      },
+      {
+        "CONSTRAINT_NAME": "chk_purchase_preference",
+        "CHECK_CLAUSE": "((`fit_preference` is null) or (`fit_preference` in (_cp850\\'TIGHT\\',_cp850\\'REGULAR\\',_cp850\\'RELAXED\\')))"
+      }
+    ],
+    "ddl": "CREATE TABLE `purchase` (\n  `purchase_id` int NOT NULL AUTO_INCREMENT,\n  `user_id` int NOT NULL,\n  `garment_size_id` int NOT NULL,\n  `purchase_date` date NOT NULL DEFAULT (curdate()),\n  `outcome` varchar(10) NOT NULL,\n  `fit_satisfaction` varchar(10) DEFAULT NULL,\n  `fit_preference` varchar(20) DEFAULT NULL,\n  PRIMARY KEY (`purchase_id`),\n  KEY `idx_purchase_user` (`user_id`),\n  KEY `idx_purchase_size` (`garment_size_id`),\n  CONSTRAINT `fk_purchase_size` FOREIGN KEY (`garment_size_id`) REFERENCES `garment_size` (`garment_size_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `fk_purchase_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE,\n  CONSTRAINT `chk_purchase_outcome` CHECK ((`outcome` in (_cp850'KEPT',_cp850'RETURNED',_cp850'EXCHANGED'))),\n  CONSTRAINT `chk_purchase_preference` CHECK (((`fit_preference` is null) or (`fit_preference` in (_cp850'TIGHT',_cp850'REGULAR',_cp850'RELAXED')))),\n  CONSTRAINT `chk_purchase_satisfaction` CHECK (((`fit_satisfaction` is null) or (`fit_satisfaction` in (_cp850'GOOD',_cp850'AVERAGE',_cp850'POOR'))))\n) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "REVIEW_AUDIT": {
+    "columns": [
+      {
+        "COLUMN_NAME": "audit_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "review_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "action",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "user_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "changed_at",
+        "COLUMN_TYPE": "timestamp",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+        "EXTRA": "DEFAULT_GENERATED",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "details",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 6
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "audit_id",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [],
+    "ddl": "CREATE TABLE `review_audit` (\n  `audit_id` int NOT NULL AUTO_INCREMENT,\n  `review_id` int NOT NULL,\n  `action` varchar(20) NOT NULL,\n  `user_id` int NOT NULL,\n  `changed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `details` text,\n  PRIMARY KEY (`audit_id`)\n) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  },
+  "USER": {
+    "columns": [
+      {
+        "COLUMN_NAME": "user_id",
+        "COLUMN_TYPE": "int",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "auto_increment",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "COLUMN_NAME": "name",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 2
+      },
+      {
+        "COLUMN_NAME": "email",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 3
+      },
+      {
+        "COLUMN_NAME": "password_hash",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 4
+      },
+      {
+        "COLUMN_NAME": "role",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "USER",
+        "EXTRA": "",
+        "CHARACTER_SET_NAME": "utf8mb4",
+        "COLLATION_NAME": "utf8mb4_0900_ai_ci",
+        "ORDINAL_POSITION": 5
+      },
+      {
+        "COLUMN_NAME": "created_at",
+        "COLUMN_TYPE": "timestamp",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+        "EXTRA": "DEFAULT_GENERATED",
+        "CHARACTER_SET_NAME": null,
+        "COLLATION_NAME": null,
+        "ORDINAL_POSITION": 6
+      }
+    ],
+    "keys": [
+      {
+        "CONSTRAINT_NAME": "PRIMARY",
+        "CONSTRAINT_TYPE": "PRIMARY KEY",
+        "COLUMN_NAME": "user_id",
+        "ORDINAL_POSITION": 1
+      },
+      {
+        "CONSTRAINT_NAME": "uq_user_email",
+        "CONSTRAINT_TYPE": "UNIQUE",
+        "COLUMN_NAME": "email",
+        "ORDINAL_POSITION": 1
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [
+      {
+        "CONSTRAINT_NAME": "chk_user_role",
+        "CHECK_CLAUSE": "(`role` in (_cp850\\'USER\\',_cp850\\'ADMIN\\'))"
+      }
+    ],
+    "ddl": "CREATE TABLE `user` (\n  `user_id` int NOT NULL AUTO_INCREMENT,\n  `name` varchar(100) NOT NULL,\n  `email` varchar(255) NOT NULL,\n  `password_hash` varchar(255) NOT NULL,\n  `role` varchar(10) NOT NULL DEFAULT 'USER',\n  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`user_id`),\n  UNIQUE KEY `uq_user_email` (`email`),\n  CONSTRAINT `chk_user_role` CHECK ((`role` in (_cp850'USER',_cp850'ADMIN')))\n) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "entity_classification": "regular: independent single-column surrogate primary key",
+    "weak_entity": false,
+    "identifying_relationship": false
+  }
+}

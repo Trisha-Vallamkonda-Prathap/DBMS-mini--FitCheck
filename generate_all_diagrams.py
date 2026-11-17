@@ -1,956 +1,273 @@
+"""Deterministic black-and-white FitCheck diagrams from audited MySQL metadata.
+
+Run with Python, Pillow and Playwright (installed Edge/Chromium).
+The schema snapshot, not application data or an old diagram, drives every key,
+attribute and FK. No connection to MySQL and no database writes occur here.
 """
-FitCheck Academic Diagram Generator
-Produces publication-grade, academically rigorous:
-1. Conceptual Chen ER Diagram (genuine Chen notation with weak entities, identifying relationships, partial keys)
-   -> docs/diagrams/conceptual_er_diagram.svg, .png, .pdf
-2. Logical Relational Schema Diagram (tables, columns, types, PK/FK/UQ, relational mappings)
-   -> docs/diagrams/relational_schema_diagram.svg, .png, .pdf
-"""
-import os
-import fitz  # PyMuPDF
-
-def generate_conceptual_erd():
-    svg = """<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1760" width="2400" height="1760" style="background:#FFFFFF; font-family:'Segoe UI', Arial, Helvetica, sans-serif;">
-  <defs>
-    <style>
-      .title { font-size: 26px; font-weight: bold; fill: #111827; }
-      .subtitle { font-size: 14px; fill: #4B5563; }
-      .entity-title { font-size: 16px; font-weight: bold; text-anchor: middle; fill: #000000; }
-      .rel-title { font-size: 12px; font-weight: bold; text-anchor: middle; fill: #000000; }
-      .attr-text { font-size: 13px; text-anchor: middle; fill: #000000; }
-      .pk-text { font-size: 13.5px; font-weight: bold; text-anchor: middle; text-decoration: underline; fill: #000000; }
-      .partial-key-text { font-size: 13.5px; font-weight: bold; text-anchor: middle; fill: #000000; }
-      .card-text { font-size: 16px; font-weight: bold; fill: #000000; }
-    </style>
-  </defs>
-
-  <!-- Canvas Outer Border -->
-  <rect x="20" y="20" width="2360" height="1720" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
-
-  <!-- Title Header Banner -->
-  <rect x="50" y="40" width="2300" height="70" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
-  <text x="1200" y="75" class="title" text-anchor="middle">FitCheck — Conceptual Entity-Relationship (ER) Diagram (Chen Notation)</text>
-  <text x="1200" y="98" class="subtitle" text-anchor="middle">Academic DBMS Specification | Strong Entities, Weak Entities with Partial Keys, Identifying Relationships, and Participation Constraints</text>
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 1: USER (Strong Entity) -->
-  <!-- Pos: X=350, Y=230, W=180, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="350" y="230" width="180" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>
-  <text x="440" y="267" class="entity-title" font-size="18">USER</text>
-
-  <!-- Attributes of USER -->
-  <!-- user_id (PK) -->
-  <line x1="350" y1="240" x2="210" y2="160" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="190" cy="150" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="190" y="156" class="pk-text">user_id</text>
-
-  <!-- name -->
-  <line x1="390" y1="230" x2="330" y2="140" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="320" cy="130" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="320" y="135" class="attr-text">name</text>
-
-  <!-- email -->
-  <line x1="440" y1="230" x2="440" y2="140" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="440" cy="130" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="440" y="135" class="attr-text">email</text>
-
-  <!-- password_hash -->
-  <line x1="490" y1="230" x2="550" y2="140" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="570" cy="130" rx="65" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="570" y="135" class="attr-text">password_hash</text>
-
-  <!-- role -->
-  <line x1="530" y1="240" x2="670" y2="170" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="690" cy="160" rx="40" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="690" y="165" class="attr-text">role</text>
-
-  <!-- created_at -->
-  <line x1="530" y1="260" x2="690" y2="230" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="710" cy="230" rx="50" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="710" y="235" class="attr-text">created_at</text>
-
-
-  <!-- ============================================================== -->
-  <!-- RELATIONSHIP: Has_Profile (1:1 Identifying Relationship) -->
-  <!-- Between USER (350..530, 230..290) and BODY_PROFILE (100..300, 495..555) -->
-  <!-- ============================================================== -->
-  <line x1="370" y1="290" x2="260" y2="380" stroke="#000000" stroke-width="1.8"/>
-  <text x="330" y="325" class="card-text">1</text>
-
-  <!-- Double Diamond for Identifying Relationship -->
-  <polygon points="260,340 320,380 260,420 200,380" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <polygon points="260,346 312,380 260,414 208,380" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="260" y="385" class="rel-title">Has_Profile</text>
-
-  <!-- Total Participation Double Line from BODY_PROFILE to Has_Profile -->
-  <line x1="256" y1="420" x2="206" y2="495" stroke="#000000" stroke-width="1.5"/>
-  <line x1="264" y1="420" x2="214" y2="495" stroke="#000000" stroke-width="1.5"/>
-  <text x="250" y="465" class="card-text">1</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 2: BODY_PROFILE (Weak / Dependent Entity) -->
-  <!-- Owning Entity: USER | Identified By: user_id -->
-  <!-- Pos: X=100, Y=495, W=200, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="100" y="495" width="200" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <rect x="105" y="500" width="190" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="200" y="532" class="entity-title">BODY_PROFILE</text>
-
-  <!-- preferred_fit (placed at top-left of BODY_PROFILE) -->
-  <line x1="120" y1="495" x2="70" y2="445" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="65" cy="435" rx="50" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="65" y="440" class="attr-text" font-size="12">preferred_fit</text>
-
-  <!-- height -->
-  <line x1="120" y1="555" x2="70" y2="625" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="65" cy="635" rx="42" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="65" y="640" class="attr-text">height</text>
-
-  <!-- waist -->
-  <line x1="160" y1="555" x2="135" y2="645" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="130" cy="655" rx="40" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="130" y="660" class="attr-text">waist</text>
-
-  <!-- hip -->
-  <line x1="200" y1="555" x2="200" y2="655" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="200" cy="665" rx="38" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="200" y="670" class="attr-text">hip</text>
-
-  <!-- thigh -->
-  <line x1="240" y1="555" x2="265" y2="645" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="270" cy="655" rx="40" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="270" y="660" class="attr-text">thigh</text>
-
-  <!-- inseam -->
-  <line x1="280" y1="555" x2="330" y2="625" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="340" cy="635" rx="42" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="340" y="640" class="attr-text">inseam</text>
-
-
-  <!-- ============================================================== -->
-  <!-- RELATIONSHIP: Places_Order / Makes (1:N) USER -> PURCHASE -->
-  <!-- ============================================================== -->
-  <line x1="440" y1="290" x2="440" y2="720" stroke="#000000" stroke-width="1.8"/>
-  <text x="455" y="360" class="card-text">1</text>
-
-  <polygon points="440,720 495,755 440,790 385,755" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="440" y="760" class="rel-title">Makes</text>
-
-  <!-- Enters PURCHASE at top center (330, 860) to avoid any overlap with attributes -->
-  <line x1="440" y1="790" x2="330" y2="860" stroke="#000000" stroke-width="1.8"/>
-  <text x="400" y="825" class="card-text">N</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 3: PURCHASE (Strong Entity) -->
-  <!-- Pos: X=240, Y=860, W=180, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="240" y="860" width="180" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>
-  <text x="330" y="897" class="entity-title" font-size="18">PURCHASE</text>
-
-  <!-- Attributes of PURCHASE -->
-  <!-- purchase_id (PK) -->
-  <line x1="240" y1="875" x2="150" y2="825" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="120" cy="815" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="120" y="821" class="pk-text">purchase_id</text>
-
-  <!-- purchase_date -->
-  <line x1="240" y1="900" x2="140" y2="900" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="110" cy="900" rx="55" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="110" y="905" class="attr-text" font-size="12.5">purchase_date</text>
-
-  <!-- outcome -->
-  <line x1="260" y1="920" x2="160" y2="965" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="140" cy="975" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="140" y="980" class="attr-text">outcome</text>
-
-  <!-- fit_satisfaction -->
-  <line x1="310" y1="920" x2="260" y2="1000" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="250" cy="1015" rx="55" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="250" y="1020" class="attr-text" font-size="12">fit_satisfaction</text>
-
-  <!-- fit_preference -->
-  <line x1="370" y1="920" x2="385" y2="1000" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="395" cy="1015" rx="55" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="395" y="1020" class="attr-text" font-size="12">fit_preference</text>
-
-
-  <!-- ============================================================== -->
-  <!-- RELATIONSHIP: Writes_Review (1:N) USER -> FIT_REVIEW -->
-  <!-- ============================================================== -->
-  <line x1="510" y1="290" x2="680" y2="430" stroke="#000000" stroke-width="1.8"/>
-  <text x="560" y="340" class="card-text">1</text>
-
-  <polygon points="700,400 760,440 700,480 640,440" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="700" y="445" class="rel-title">Writes</text>
-
-  <line x1="720" y1="480" x2="790" y2="600" stroke="#000000" stroke-width="1.8"/>
-  <text x="765" y="540" class="card-text">N</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 4: FIT_REVIEW (Strong Entity) -->
-  <!-- Pos: X=730, Y=600, W=190, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="730" y="600" width="190" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>
-  <text x="825" y="637" class="entity-title" font-size="18">FIT_REVIEW</text>
-
-  <!-- Attributes of FIT_REVIEW -->
-  <!-- review_id (PK) -->
-  <line x1="730" y1="620" x2="620" y2="600" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="590" cy="595" rx="55" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="590" y="601" class="pk-text">review_id</text>
-
-  <!-- overall_fit -->
-  <line x1="730" y1="640" x2="630" y2="660" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="600" cy="670" rx="50" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="600" y="675" class="attr-text">overall_fit</text>
-
-  <!-- waist_fit -->
-  <line x1="750" y1="660" x2="670" y2="725" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="650" cy="735" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="650" y="740" class="attr-text">waist_fit</text>
-
-  <!-- hip_fit -->
-  <line x1="800" y1="660" x2="750" y2="760" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="740" cy="775" rx="40" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="740" y="780" class="attr-text">hip_fit</text>
-
-  <!-- thigh_fit -->
-  <line x1="840" y1="660" x2="840" y2="770" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="840" cy="785" rx="42" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="840" y="790" class="attr-text">thigh_fit</text>
-
-  <!-- length_fit -->
-  <line x1="880" y1="660" x2="930" y2="750" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="945" cy="765" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="945" y="770" class="attr-text">length_fit</text>
-
-  <!-- review_text -->
-  <line x1="910" y1="660" x2="1010" y2="710" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1035" cy="720" rx="55" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1035" y="725" class="attr-text">review_text</text>
-
-  <!-- created_at (placed cleanly above FIT_REVIEW top-right) -->
-  <line x1="880" y1="600" x2="930" y2="550" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="955" cy="540" rx="50" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="955" y="545" class="attr-text">created_at</text>
-
-
-  <!-- ============================================================== -->
-  <!-- CATALOG HIERARCHY (RIGHT SIDE) -->
-  <!-- BRAND (Strong) -> GARMENT (Strong) -> GARMENT_SIZE (Weak) -> GARMENT_MEASUREMENT (Weak) -->
-  <!-- ============================================================== -->
-
-  <!-- ENTITY 5: BRAND (Strong Entity) -->
-  <!-- Pos: X=1750, Y=230, W=180, H=60 -->
-  <rect x="1750" y="230" width="180" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>
-  <text x="1840" y="267" class="entity-title" font-size="18">BRAND</text>
-
-  <!-- Attributes of BRAND -->
-  <!-- brand_id (PK) -->
-  <line x1="1750" y1="240" x2="1620" y2="160" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1600" cy="150" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1600" y="156" class="pk-text" font-size="14.5">brand_id</text>
-
-  <!-- brand_name -->
-  <line x1="1800" y1="230" x2="1750" y2="140" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1740" cy="130" rx="55" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1740" y="136" class="attr-text">brand_name</text>
-
-  <!-- sizing_system -->
-  <line x1="1860" y1="230" x2="1900" y2="140" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1910" cy="130" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1910" y="136" class="attr-text">sizing_system</text>
-
-  <!-- Derived Attribute: return_rate (Dashed Oval) -->
-  <line x1="1930" y1="240" x2="2040" y2="170" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2060" cy="160" rx="55" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <text x="2060" y="165" class="attr-text" font-size="12" font-style="italic">return_rate</text>
-
-
-  <!-- ============================================================== -->
-  <!-- RELATIONSHIP: Produces (1:N) BRAND -> GARMENT -->
-  <!-- ============================================================== -->
-  <line x1="1840" y1="290" x2="1840" y2="390" stroke="#000000" stroke-width="1.8"/>
-  <text x="1855" y="335" class="card-text">1</text>
-
-  <polygon points="1840,390 1910,430 1840,470 1770,430" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1840" y="435" class="rel-title">Produces</text>
-
-  <line x1="1840" y1="470" x2="1840" y2="570" stroke="#000000" stroke-width="1.8"/>
-  <text x="1855" y="525" class="card-text">N</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 6: GARMENT (Strong Entity) -->
-  <!-- Pos: X=1750, Y=570, W=180, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="1750" y="570" width="180" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>
-  <text x="1840" y="607" class="entity-title" font-size="18">GARMENT</text>
-
-  <!-- Attributes of GARMENT -->
-  <!-- garment_id (PK) -->
-  <line x1="1750" y1="585" x2="1610" y2="530" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1580" cy="520" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1580" y="526" class="pk-text" font-size="14">garment_id</text>
-
-  <!-- garment_name -->
-  <line x1="1750" y1="610" x2="1620" y2="630" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="1590" cy="635" rx="60" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1590" y="640" class="attr-text">garment_name</text>
-
-  <!-- garment_category -->
-  <line x1="1930" y1="585" x2="2040" y2="540" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2060" cy="530" rx="65" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2060" y="535" class="attr-text" font-size="12.5">garment_category</text>
-
-  <!-- fit_type -->
-  <line x1="1930" y1="610" x2="2050" y2="620" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2075" cy="625" rx="50" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2075" y="630" class="attr-text">fit_type</text>
-
-  <!-- description -->
-  <line x1="1930" y1="625" x2="2040" y2="700" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2065" cy="715" rx="55" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2065" y="720" class="attr-text">description</text>
-
-
-  <!-- ============================================================== -->
-  <!-- IDENTIFYING RELATIONSHIP: Offers_Size (Double Diamond) -->
-  <!-- GARMENT (Owner) -> GARMENT_SIZE (Weak Entity) -->
-  <!-- ============================================================== -->
-  <line x1="1840" y1="630" x2="1840" y2="730" stroke="#000000" stroke-width="1.8"/>
-  <text x="1855" y="675" class="card-text">1</text>
-
-  <!-- Double Diamond -->
-  <polygon points="1840,730 1915,775 1840,820 1765,775" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <polygon points="1840,736 1907,775 1840,814 1773,775" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1840" y="780" class="rel-title">Offers_Size</text>
-
-  <!-- Total Participation Double Line from GARMENT_SIZE to Offers_Size -->
-  <line x1="1836" y1="820" x2="1836" y2="920" stroke="#000000" stroke-width="1.5"/>
-  <line x1="1844" y1="820" x2="1844" y2="920" stroke="#000000" stroke-width="1.5"/>
-  <text x="1855" y="875" class="card-text">N</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 7: GARMENT_SIZE (GENUINE WEAK ENTITY - Double Rectangle) -->
-  <!-- Owning Entity: GARMENT | Partial Key: size_label (dashed underline) -->
-  <!-- Pos: X=1740, Y=920, W=200, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="1740" y="920" width="200" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <rect x="1745" y="925" width="190" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1840" y="957" class="entity-title" font-size="17">GARMENT_SIZE</text>
-
-  <!-- Partial Key / Discriminator Attribute: size_label (Dashed Underline) -->
-  <line x1="1940" y1="945" x2="2070" y2="925" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2100" cy="920" rx="65" ry="26" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="2100" y="925" class="partial-key-text">size_label</text>
-  <!-- Dashed Underline for Partial Key -->
-  <line x1="2065" y1="932" x2="2135" y2="932" stroke="#000000" stroke-width="1.8" stroke-dasharray="3,3"/>
-
-  <!-- Surrogate Key / Implementation Attribute: garment_size_id -->
-  <line x1="1940" y1="960" x2="2070" y2="990" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2105" cy="1000" rx="70" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2105" y="1005" class="attr-text" font-size="12">garment_size_id</text>
-
-
-  <!-- ============================================================== -->
-  <!-- IDENTIFYING RELATIONSHIP: Has_Measurement (Double Diamond) -->
-  <!-- GARMENT_SIZE (Owner) -> GARMENT_MEASUREMENT (Weak Entity) -->
-  <!-- ============================================================== -->
-  <line x1="1840" y1="980" x2="1840" y2="1070" stroke="#000000" stroke-width="1.8"/>
-  <text x="1855" y="1025" class="card-text">1</text>
-
-  <!-- Double Diamond (Width 190, Height 100 for comfortable text padding) -->
-  <polygon points="1840,1070 1935,1120 1840,1170 1745,1120" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <polygon points="1840,1076 1927,1120 1840,1164 1753,1120" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1840" y="1125" class="rel-title">Has_Measurement</text>
-
-  <!-- Total Participation Double Line from GARMENT_MEASUREMENT to Has_Measurement -->
-  <line x1="1836" y1="1170" x2="1836" y2="1270" stroke="#000000" stroke-width="1.5"/>
-  <line x1="1844" y1="1170" x2="1844" y2="1270" stroke="#000000" stroke-width="1.5"/>
-  <text x="1855" y="1225" class="card-text">N</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ENTITY 8: GARMENT_MEASUREMENT (WEAK ENTITY - Double Rectangle) -->
-  <!-- Owning Entity: GARMENT_SIZE | Partial Key: measurement_type -->
-  <!-- Pos: X=1700, Y=1270, W=280, H=60 -->
-  <!-- ============================================================== -->
-  <rect x="1700" y="1270" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <rect x="1705" y="1275" width="270" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="1840" y="1307" class="entity-title" font-size="16">GARMENT_MEASUREMENT</text>
-
-  <!-- Partial Key / Discriminator: measurement_type (Dashed Underline) -->
-  <line x1="1980" y1="1290" x2="2090" y2="1260" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2120" cy="1250" rx="75" ry="26" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="2120" y="1255" class="partial-key-text">measurement_type</text>
-  <!-- Dashed Underline -->
-  <line x1="2060" y1="1263" x2="2180" y2="1263" stroke="#000000" stroke-width="1.8" stroke-dasharray="3,3"/>
-
-  <!-- Attribute: measurement_value -->
-  <line x1="1980" y1="1310" x2="2100" y2="1325" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2130" cy="1330" rx="70" ry="24" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2130" y="1335" class="attr-text" font-size="12.5">measurement_value</text>
-
-  <!-- Attribute: unit -->
-  <line x1="1980" y1="1330" x2="2090" y2="1390" stroke="#000000" stroke-width="1.5"/>
-  <ellipse cx="2115" cy="1400" rx="45" ry="22" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="2115" y="1405" class="attr-text">unit</text>
-
-
-  <!-- ============================================================== -->
-  <!-- CONNECTIONS FROM ASSOCIATIVE RELATIONSHIPS TO GARMENT_SIZE -->
-  <!-- ============================================================== -->
-
-  <!-- PURCHASE -> Includes -> GARMENT_SIZE -->
-  <line x1="420" y1="890" x2="1080" y2="890" stroke="#000000" stroke-width="1.8"/>
-  <text x="445" y="880" class="card-text">N</text>
-
-  <polygon points="1130,855 1195,890 1130,925 1065,890" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1130" y="895" class="rel-title">Includes</text>
-
-  <line x1="1195" y1="890" x2="1740" y2="940" stroke="#000000" stroke-width="1.8"/>
-  <text x="1705" y="930" class="card-text">1</text>
-
-  <!-- FIT_REVIEW -> Reviews -> GARMENT_SIZE -->
-  <line x1="920" y1="630" x2="1315" y2="630" stroke="#000000" stroke-width="1.8"/>
-  <text x="945" y="620" class="card-text">N</text>
-
-  <polygon points="1380,595 1445,630 1380,665 1315,630" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1380" y="635" class="rel-title">Reviews</text>
-
-  <line x1="1445" y1="630" x2="1750" y2="925" stroke="#000000" stroke-width="1.8"/>
-  <text x="1695" y="880" class="card-text">1</text>
-
-
-  <!-- ============================================================== -->
-  <!-- ACADEMIC NOTATION LEGEND (BOTTOM) -->
-  <!-- ============================================================== -->
-  <rect x="50" y="1470" width="2300" height="240" fill="#F8FAFC" stroke="#000000" stroke-width="2"/>
-  <text x="80" y="1505" font-size="18" font-weight="bold" fill="#000000">Academic Conceptual ER Notation Reference (Chen Methodology):</text>
-
-  <!-- Row 1: Strong Entity, Weak Entity, Relationship -->
-  <rect x="80" y="1530" width="130" height="42" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
-  <text x="145" y="1556" font-size="13.5" font-weight="bold" text-anchor="middle">Strong Entity</text>
-  <text x="225" y="1556" font-size="13" fill="#1E293B">Independent entity with autonomous primary key (e.g. USER, BRAND, GARMENT)</text>
-
-  <rect x="830" y="1530" width="130" height="42" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <rect x="834" y="1534" width="122" height="34" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="895" y="1556" font-size="13.5" font-weight="bold" text-anchor="middle">Weak Entity</text>
-  <text x="975" y="1556" font-size="13" fill="#1E293B">Existence-dependent entity identified by owner key + partial key (e.g. GARMENT_SIZE, GARMENT_MEASUREMENT)</text>
-
-  <polygon points="1730,1525 1780,1551 1730,1577 1680,1551" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1730" y="1556" font-size="12" font-weight="bold" text-anchor="middle">Relation</text>
-  <text x="1805" y="1556" font-size="13" fill="#1E293B">Standard relationship diamond connecting entities</text>
-
-  <!-- Row 2: Identifying Relationship, Primary Key, Partial Key -->
-  <polygon points="135,1605 185,1631 135,1657 85,1631" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <polygon points="135,1610 180,1631 135,1652 90,1631" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-  <text x="135" y="1635" font-size="10.5" font-weight="bold" text-anchor="middle">Ident_Rel</text>
-  <text x="225" y="1636" font-size="13" fill="#1E293B">Double diamond identifying relationship binding weak entity to strong owner</text>
-
-  <ellipse cx="895" cy="1631" rx="55" ry="20" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="895" y="1636" font-size="12" font-weight="bold" text-anchor="middle" text-decoration="underline">primary_key</text>
-  <text x="975" y="1636" font-size="13" fill="#1E293B">Primary key attribute indicated by solid underline</text>
-
-  <ellipse cx="1730" cy="1631" rx="50" ry="20" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
-  <text x="1730" y="1636" font-size="12" font-weight="bold" text-anchor="middle">partial_key</text>
-  <line x1="1695" y1="1642" x2="1765" y2="1642" stroke="#000000" stroke-width="1.8" stroke-dasharray="3,3"/>
-  <text x="1805" y="1636" font-size="13" fill="#1E293B">Discriminator attribute of weak entity indicated by dashed underline</text>
-
-  <!-- Row 3: Derived Attribute, Total Participation, Partial Participation -->
-  <ellipse cx="135" cy="1690" rx="50" ry="18" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <text x="135" y="1694" font-size="11.5" font-style="italic" text-anchor="middle">derived_attr</text>
-  <text x="225" y="1694" font-size="13" fill="#1E293B">Computed/derived attribute indicated by dashed oval</text>
-
-  <line x1="840" y1="1690" x2="950" y2="1690" stroke="#000000" stroke-width="2"/>
-  <line x1="840" y1="1695" x2="950" y2="1695" stroke="#000000" stroke-width="2"/>
-  <text x="975" y="1694" font-size="13" fill="#1E293B">Double line indicating Total Participation (mandatory existence dependency)</text>
-
-  <line x1="1680" y1="1692" x2="1780" y2="1692" stroke="#000000" stroke-width="1.8"/>
-  <text x="1805" y="1694" font-size="13" fill="#1E293B">Single line indicating Partial Participation (optional association)</text>
-</svg>
-"""
-    with open("docs/diagrams/conceptual_er_diagram.svg", "w", encoding="utf-8") as f:
-        f.write(svg)
-
-    doc = fitz.open("docs/diagrams/conceptual_er_diagram.svg")
-    pdf_bytes = doc.convert_to_pdf()
-    pdf_doc = fitz.open("pdf", pdf_bytes)
-    pdf_doc.save("docs/diagrams/conceptual_er_diagram.pdf")
-
-    page = pdf_doc[0]
-    pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0))
-    pix.save("docs/diagrams/conceptual_er_diagram.png")
-    print("[SUCCESS] Regenerated docs/diagrams/conceptual_er_diagram.png & .pdf (Chen ERD)")
-
-    try:
-        pix.save("docs/diagrams/er_diagram.png")
-        with open("docs/diagrams/er_diagram.svg", "w", encoding="utf-8") as f:
-            f.write(svg)
-    except Exception as e:
-        print("[NOTICE] er_diagram:", e)
-
-
-def generate_relational_schema_diagram():
-    svg = """<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1760" width="2400" height="1760" style="background:#FFFFFF; font-family:'Segoe UI', Arial, Helvetica, sans-serif;">
-  <defs>
-    <style>
-      .title { font-size: 26px; font-weight: bold; fill: #111827; }
-      .subtitle { font-size: 14px; fill: #4B5563; }
-      .table-hdr { font-size: 15px; font-weight: bold; fill: #FFFFFF; }
-      .col-pk { font-size: 12px; font-weight: bold; fill: #B91C1C; }
-      .col-fk { font-size: 12px; font-weight: bold; fill: #1D4ED8; }
-      .col-norm { font-size: 12px; fill: #111827; }
-      .col-type { font-size: 11px; fill: #6B7280; font-family: monospace; }
-      .card-label { font-size: 11.5px; font-weight: bold; fill: #1E293B; }
-      .legend-title { font-size: 16px; font-weight: bold; fill: #111827; }
-    </style>
-    <marker id="fk-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563EB"/>
-    </marker>
-    <marker id="fk-arrow-weak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#DC2626"/>
-    </marker>
-  </defs>
-
-  <!-- Canvas Outer Border -->
-  <rect x="20" y="20" width="2360" height="1720" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
-
-  <!-- Title Header Banner -->
-  <rect x="50" y="40" width="2300" height="70" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
-  <text x="1200" y="75" class="title" text-anchor="middle">FitCheck — Logical Relational Database Schema Diagram (Physical Design)</text>
-  <text x="1200" y="98" class="subtitle" text-anchor="middle">Normalized Relational Model (3NF) | Foreign Key Constraints, Integrity Rules, Unique Keys, and Referential Actions</text>
-
-  <!-- ============================================================== -->
-  <!-- TABLE 1: USER -->
-  <!-- Pos: X=80, Y=160, W=370, H=250 -->
-  <!-- ============================================================== -->
-  <rect x="80" y="160" width="370" height="250" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="80" y="160" width="370" height="38" fill="#1E293B" rx="4"/>
-  <text x="265" y="185" class="table-hdr" text-anchor="middle">USER (Strong Entity Table)</text>
-
-  <!-- user_id (PK) -->
-  <rect x="82" y="200" width="366" height="30" fill="#FEF2F2"/>
-  <text x="95" y="220" class="col-pk">PK  user_id</text>
-  <text x="260" y="220" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- name -->
-  <text x="95" y="252" class="col-norm">name</text>
-  <text x="260" y="252" class="col-type">VARCHAR(100) NOT NULL</text>
-  <line x1="80" y1="262" x2="450" y2="262" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- email -->
-  <text x="95" y="284" class="col-norm">email [UQ]</text>
-  <text x="260" y="284" class="col-type">VARCHAR(255) UNIQUE</text>
-  <line x1="80" y1="294" x2="450" y2="294" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- password_hash -->
-  <text x="95" y="316" class="col-norm">password_hash</text>
-  <text x="260" y="316" class="col-type">VARCHAR(255) NOT NULL</text>
-  <line x1="80" y1="326" x2="450" y2="326" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- role -->
-  <text x="95" y="348" class="col-norm">role</text>
-  <text x="260" y="348" class="col-type">VARCHAR(10) CHECK ('USER','ADMIN')</text>
-  <line x1="80" y1="358" x2="450" y2="358" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- created_at -->
-  <text x="95" y="380" class="col-norm">created_at</text>
-  <text x="260" y="380" class="col-type">TIMESTAMP DEFAULT NOW</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 2: BODY_PROFILE (Dependent Entity) -->
-  <!-- Pos: X=80, Y=470, W=370, H=370 -->
-  <!-- ============================================================== -->
-  <rect x="80" y="470" width="370" height="370" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.2" stroke-dasharray="6,3" rx="4"/>
-  <rect x="80" y="470" width="370" height="38" fill="#991B1B" rx="4"/>
-  <text x="265" y="495" class="table-hdr" text-anchor="middle">BODY_PROFILE (Dependent Entity)</text>
-
-  <!-- profile_id (PK) -->
-  <rect x="82" y="510" width="366" height="30" fill="#FEF2F2"/>
-  <text x="95" y="530" class="col-pk">PK  profile_id</text>
-  <text x="260" y="530" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- user_id (FK UQ CASCADE) -->
-  <rect x="82" y="540" width="366" height="30" fill="#EFF6FF"/>
-  <text x="95" y="560" class="col-fk">FK  user_id [UQ] -&gt; USER</text>
-  <text x="260" y="560" class="col-type">INT (CASCADE)</text>
-
-  <!-- height -->
-  <text x="95" y="592" class="col-norm">height (cm)</text>
-  <text x="260" y="592" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="602" x2="450" y2="602" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- waist -->
-  <text x="95" y="624" class="col-norm">waist (cm)</text>
-  <text x="260" y="624" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="634" x2="450" y2="634" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- hip -->
-  <text x="95" y="656" class="col-norm">hip (cm)</text>
-  <text x="260" y="656" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="666" x2="450" y2="666" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- thigh -->
-  <text x="95" y="688" class="col-norm">thigh (cm)</text>
-  <text x="260" y="688" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="698" x2="450" y2="698" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- inseam -->
-  <text x="95" y="720" class="col-norm">inseam (cm)</text>
-  <text x="260" y="720" class="col-type">DECIMAL(5,2) NULL</text>
-  <line x1="80" y1="730" x2="450" y2="730" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- preferred_fit -->
-  <text x="95" y="752" class="col-norm">preferred_fit</text>
-  <text x="260" y="752" class="col-type">VARCHAR(20) ('TIGHT','REGULAR','RELAXED')</text>
-  <line x1="80" y1="762" x2="450" y2="762" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- updated_at -->
-  <text x="95" y="784" class="col-norm">updated_at</text>
-  <text x="260" y="784" class="col-type">TIMESTAMP ON UPDATE NOW</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 3: PURCHASE -->
-  <!-- Pos: X=540, Y=510, W=400, H=320 -->
-  <!-- ============================================================== -->
-  <rect x="540" y="510" width="400" height="320" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="540" y="510" width="400" height="38" fill="#1E293B" rx="4"/>
-  <text x="740" y="535" class="table-hdr" text-anchor="middle">PURCHASE (Associative Entity)</text>
-
-  <!-- purchase_id (PK) -->
-  <rect x="542" y="550" width="396" height="30" fill="#FEF2F2"/>
-  <text x="555" y="570" class="col-pk">PK  purchase_id</text>
-  <text x="740" y="570" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- user_id (FK) -->
-  <rect x="542" y="580" width="396" height="30" fill="#EFF6FF"/>
-  <text x="555" y="600" class="col-fk">FK  user_id -&gt; USER</text>
-  <text x="740" y="600" class="col-type">INT (RESTRICT)</text>
-
-  <!-- garment_size_id (FK) -->
-  <rect x="542" y="610" width="396" height="30" fill="#EFF6FF"/>
-  <text x="555" y="630" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
-  <text x="740" y="630" class="col-type">INT (RESTRICT)</text>
-
-  <!-- purchase_date -->
-  <text x="555" y="662" class="col-norm">purchase_date</text>
-  <text x="740" y="662" class="col-type">DATE DEFAULT CURRENT_DATE</text>
-  <line x1="540" y1="672" x2="940" y2="672" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- outcome -->
-  <text x="555" y="694" class="col-norm">outcome</text>
-  <text x="740" y="694" class="col-type">VARCHAR(10) ('KEPT','RETURNED','EXCHANGED')</text>
-  <line x1="540" y1="704" x2="940" y2="704" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- fit_satisfaction -->
-  <text x="555" y="726" class="col-norm">fit_satisfaction</text>
-  <text x="740" y="726" class="col-type">VARCHAR(10) ('GOOD','AVERAGE','POOR')</text>
-  <line x1="540" y1="736" x2="940" y2="736" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- fit_preference -->
-  <text x="555" y="758" class="col-norm">fit_preference</text>
-  <text x="740" y="758" class="col-type">VARCHAR(20) ('TIGHT','REGULAR','RELAXED')</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 4: FIT_REVIEW -->
-  <!-- Pos: X=1010, Y=510, W=410, H=410 -->
-  <!-- ============================================================== -->
-  <rect x="1010" y="510" width="410" height="410" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="1010" y="510" width="410" height="38" fill="#1E293B" rx="4"/>
-  <text x="1215" y="535" class="table-hdr" text-anchor="middle">FIT_REVIEW (Associative Review Entity)</text>
-
-  <!-- review_id (PK) -->
-  <rect x="1012" y="550" width="406" height="30" fill="#FEF2F2"/>
-  <text x="1025" y="570" class="col-pk">PK  review_id</text>
-  <text x="1235" y="570" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- user_id (FK) -->
-  <rect x="1012" y="580" width="406" height="30" fill="#EFF6FF"/>
-  <text x="1025" y="600" class="col-fk">FK  user_id -&gt; USER</text>
-  <text x="1235" y="600" class="col-type">INT (RESTRICT)</text>
-
-  <!-- garment_size_id (FK) -->
-  <rect x="1012" y="610" width="406" height="30" fill="#EFF6FF"/>
-  <text x="1025" y="630" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
-  <text x="1235" y="630" class="col-type">INT (RESTRICT)</text>
-
-  <!-- overall_fit -->
-  <text x="1025" y="662" class="col-norm">overall_fit</text>
-  <text x="1235" y="662" class="col-type">VARCHAR(20) ('TOO_SMALL',...,'TOO_LARGE')</text>
-  <line x1="1010" y1="672" x2="1420" y2="672" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- waist_fit -->
-  <text x="1025" y="694" class="col-norm">waist_fit</text>
-  <text x="1235" y="694" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
-  <line x1="1010" y1="704" x2="1420" y2="704" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- hip_fit -->
-  <text x="1025" y="726" class="col-norm">hip_fit</text>
-  <text x="1235" y="726" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
-  <line x1="1010" y1="736" x2="1420" y2="736" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- thigh_fit -->
-  <text x="1025" y="758" class="col-norm">thigh_fit</text>
-  <text x="1235" y="758" class="col-type">VARCHAR(10) ('TIGHT','GOOD','LOOSE')</text>
-  <line x1="1010" y1="768" x2="1420" y2="768" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- length_fit -->
-  <text x="1025" y="790" class="col-norm">length_fit</text>
-  <text x="1235" y="790" class="col-type">VARCHAR(10) ('SHORT','GOOD','LONG')</text>
-  <line x1="1010" y1="800" x2="1420" y2="800" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- review_text -->
-  <text x="1025" y="822" class="col-norm">review_text</text>
-  <text x="1235" y="822" class="col-type">TEXT NOT NULL (CHAR_LENGTH &gt; 0)</text>
-  <line x1="1010" y1="832" x2="1420" y2="832" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- created_at -->
-  <text x="1025" y="854" class="col-norm">created_at</text>
-  <text x="1235" y="854" class="col-type">TIMESTAMP DEFAULT NOW</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 5: BRAND -->
-  <!-- Pos: X=1900, Y=160, W=380, H=190 -->
-  <!-- ============================================================== -->
-  <rect x="1900" y="160" width="380" height="190" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="1900" y="160" width="380" height="38" fill="#1E293B" rx="4"/>
-  <text x="2090" y="185" class="table-hdr" text-anchor="middle">BRAND (Strong Entity Table)</text>
-
-  <!-- brand_id (PK) -->
-  <rect x="1902" y="200" width="376" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="220" class="col-pk">PK  brand_id</text>
-  <text x="2100" y="220" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- brand_name -->
-  <text x="1915" y="252" class="col-norm">brand_name [UQ]</text>
-  <text x="2100" y="252" class="col-type">VARCHAR(100) UNIQUE</text>
-  <line x1="1900" y1="262" x2="2280" y2="262" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- sizing_system -->
-  <text x="1915" y="284" class="col-norm">sizing_system</text>
-  <text x="2100" y="284" class="col-type">VARCHAR(20) ('ALPHA','NUMERIC','WAIST_BASED')</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 6: GARMENT -->
-  <!-- Pos: X=1900, Y=400, W=380, H=280 -->
-  <!-- ============================================================== -->
-  <rect x="1900" y="400" width="380" height="280" fill="#FFFFFF" stroke="#1E293B" stroke-width="2" rx="4"/>
-  <rect x="1900" y="400" width="380" height="38" fill="#1E293B" rx="4"/>
-  <text x="2090" y="425" class="table-hdr" text-anchor="middle">GARMENT (Strong Entity Table)</text>
-
-  <!-- garment_id (PK) -->
-  <rect x="1902" y="440" width="376" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="460" class="col-pk">PK  garment_id</text>
-  <text x="2100" y="460" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- brand_id (FK) -->
-  <rect x="1902" y="470" width="376" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="490" class="col-fk">FK  brand_id -&gt; BRAND</text>
-  <text x="2100" y="490" class="col-type">INT (RESTRICT)</text>
-
-  <!-- garment_name -->
-  <text x="1915" y="522" class="col-norm">garment_name</text>
-  <text x="2100" y="522" class="col-type">VARCHAR(150) NOT NULL</text>
-  <line x1="1900" y1="532" x2="2280" y2="532" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- garment_category -->
-  <text x="1915" y="554" class="col-norm">garment_category</text>
-  <text x="2100" y="554" class="col-type">VARCHAR(30) ('Jeans','Trousers')</text>
-  <line x1="1900" y1="564" x2="2280" y2="564" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- fit_type -->
-  <text x="1915" y="586" class="col-norm">fit_type</text>
-  <text x="2100" y="586" class="col-type">VARCHAR(30) ('STRAIGHT','SLIM',...)</text>
-  <line x1="1900" y1="596" x2="2280" y2="596" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- description -->
-  <text x="1915" y="618" class="col-norm">description</text>
-  <text x="2100" y="618" class="col-type">TEXT NULL</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 7: GARMENT_SIZE (Weak Entity Relational Mapping) -->
-  <!-- Pos: X=1900, Y=730, W=400, H=220 -->
-  <!-- ============================================================== -->
-  <rect x="1900" y="730" width="400" height="220" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
-  <rect x="1900" y="730" width="400" height="38" fill="#991B1B" rx="4"/>
-  <text x="2100" y="755" class="table-hdr" text-anchor="middle">GARMENT_SIZE (Weak Entity Mapping)</text>
-
-  <!-- garment_size_id (Surrogate PK) -->
-  <rect x="1902" y="770" width="396" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="790" class="col-pk">PK  garment_size_id</text>
-  <text x="2120" y="790" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- garment_id (FK RESTRICT) -->
-  <rect x="1902" y="800" width="396" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="820" class="col-fk">FK  garment_id -&gt; GARMENT</text>
-  <text x="2120" y="820" class="col-type">INT (RESTRICT)</text>
-
-  <!-- size_label (Partial Key / Discriminator) -->
-  <rect x="1902" y="830" width="396" height="30" fill="#FEF3C7"/>
-  <text x="1915" y="850" class="col-pk" fill="#B45309">DISCRIM  size_label [PARTIAL KEY]</text>
-  <text x="2170" y="850" class="col-type">VARCHAR(20)</text>
-
-  <!-- Composite Candidate Key Constraint Note -->
-  <text x="1915" y="882" class="col-norm" font-weight="bold">UQ(garment_id, size_label)</text>
-  <text x="2120" y="882" class="col-type">COMPOSITE CANDIDATE PK</text>
-
-
-  <!-- ============================================================== -->
-  <!-- TABLE 8: GARMENT_MEASUREMENT (Second-Order Weak Entity) -->
-  <!-- Pos: X=1900, Y=1010, W=400, H=280 -->
-  <!-- ============================================================== -->
-  <rect x="1900" y="1010" width="400" height="280" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="6,3" rx="4"/>
-  <rect x="1900" y="1010" width="400" height="38" fill="#991B1B" rx="4"/>
-  <text x="2100" y="1035" class="table-hdr" text-anchor="middle">GARMENT_MEASUREMENT (Weak Entity)</text>
-
-  <!-- measurement_id (Surrogate PK) -->
-  <rect x="1902" y="1050" width="396" height="30" fill="#FEF2F2"/>
-  <text x="1915" y="1070" class="col-pk">PK  measurement_id</text>
-  <text x="2130" y="1070" class="col-type">INT AUTO_INCREMENT</text>
-
-  <!-- garment_size_id (FK CASCADE) -->
-  <rect x="1902" y="1080" width="396" height="30" fill="#EFF6FF"/>
-  <text x="1915" y="1100" class="col-fk">FK  garment_size_id -&gt; GARMENT_SIZE</text>
-  <text x="2130" y="1100" class="col-type">INT (CASCADE)</text>
-
-  <!-- measurement_type (Partial Key / Discriminator) -->
-  <rect x="1902" y="1110" width="396" height="30" fill="#FEF3C7"/>
-  <text x="1915" y="1130" class="col-pk" fill="#B45309">DISCRIM  measurement_type</text>
-  <text x="2170" y="1130" class="col-type">VARCHAR(20)</text>
-
-  <!-- Composite Constraint Note -->
-  <text x="1915" y="1162" class="col-norm" font-weight="bold">UQ(garment_size_id, measurement_type)</text>
-  <text x="2170" y="1162" class="col-type">COMPOSITE KEY</text>
-  <line x1="1900" y1="1172" x2="2300" y2="1172" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- measurement_value -->
-  <text x="1915" y="1194" class="col-norm">measurement_value</text>
-  <text x="2130" y="1194" class="col-type">DECIMAL(6,2) CHECK (&gt; 0)</text>
-  <line x1="1900" y1="1204" x2="2300" y2="1204" stroke="#E2E8F0" stroke-width="1"/>
-
-  <!-- unit -->
-  <text x="1915" y="1226" class="col-norm">unit</text>
-  <text x="2130" y="1226" class="col-type">VARCHAR(5) CHECK ('cm','in')</text>
-
-
-  <!-- ============================================================== -->
-  <!-- FOREIGN KEY RELATIONSHIP CONNECTOR ARROWS (Routed Outside Tables) -->
-  <!-- ============================================================== -->
-
-  <!-- 1. USER -&gt; BODY_PROFILE (1:1 Identifying Cascade) -->
-  <path d="M 265 410 L 265 470" fill="none" stroke="#DC2626" stroke-width="2.2" marker-end="url(#fk-arrow-weak)"/>
-  <text x="275" y="445" class="card-label" fill="#DC2626">1 : 1 (CASCADE)</text>
-
-  <!-- 2. USER -&gt; PURCHASE (1:N Restrict, routed through channel at x=495) -->
-  <path d="M 450 220 L 495 220 L 495 600 L 540 600" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="500" y="380" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 3. USER -&gt; FIT_REVIEW (1:N Restrict, routed through top channel at y=130) -->
-  <path d="M 450 200 L 480 200 L 480 130 L 980 130 L 980 600 L 1010 600" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="730" y="120" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 4. BRAND -&gt; GARMENT (1:N Restrict) -->
-  <path d="M 2090 350 L 2090 400" fill="none" stroke="#2563EB" stroke-width="2" marker-end="url(#fk-arrow)"/>
-  <text x="2100" y="380" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 5. GARMENT -&gt; GARMENT_SIZE (1:N Restrict) -->
-  <path d="M 2090 680 L 2090 730" fill="none" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fk-arrow)"/>
-  <text x="2100" y="710" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 6. GARMENT_SIZE -&gt; GARMENT_MEASUREMENT (1:N Weak Identifying Cascade) -->
-  <path d="M 2090 950 L 2090 1010" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#fk-arrow-weak)"/>
-  <text x="2100" y="985" class="card-label" fill="#DC2626">1 : N (CASCADE)</text>
-
-  <!-- 7. GARMENT_SIZE -&gt; PURCHASE (1:N Restrict, enters purchase bottom) -->
-  <path d="M 1900 820 L 1600 820 L 1600 900 L 740 900 L 740 830" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
-  <text x="1100" y="890" class="card-label">1 : N (RESTRICT)</text>
-
-  <!-- 8. GARMENT_SIZE -&gt; FIT_REVIEW (1:N Restrict, enters review right side) -->
-  <path d="M 1900 790 L 1500 790 L 1500 630 L 1420 630" fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fk-arrow)"/>
-  <text x="1510" y="620" class="card-label">1 : N (RESTRICT)</text>
-
-
-  <!-- ============================================================== -->
-  <!-- RELATIONAL SCHEMA NOTATION LEGEND (BOTTOM) -->
-  <!-- ============================================================== -->
-  <rect x="50" y="1450" width="2300" height="260" fill="#F8FAFC" stroke="#000000" stroke-width="2"/>
-  <text x="80" y="1485" class="legend-title">Relational Schema Architectural Legend &amp; Course Mapping Principles:</text>
-
-  <!-- Item 1: Strong vs Weak Entity Relational Mapping -->
-  <rect x="80" y="1510" width="30" height="20" fill="#1E293B"/>
-  <text x="120" y="1525" class="col-norm" font-weight="bold">Solid Border Table:</text>
-  <text x="270" y="1525" class="col-norm">Autonomous Base Table (Strong Entity with Independent Primary Key e.g., USER, BRAND, GARMENT)</text>
-
-  <rect x="80" y="1545" width="30" height="20" fill="#FFFFFF" stroke="#DC2626" stroke-width="2" stroke-dasharray="4,2"/>
-  <text x="120" y="1560" class="col-norm" font-weight="bold" fill="#DC2626">Dashed Border Table:</text>
-  <text x="270" y="1560" class="col-norm">Weak Entity Relational Mapping (Existence-dependent table identified by Owner FK + Discriminator)</text>
-
-  <!-- Item 2: Keys -->
-  <rect x="80" y="1580" width="40" height="18" fill="#FEF2F2"/>
-  <text x="85" y="1594" class="col-pk">PK</text>
-  <text x="130" y="1594" class="col-norm" font-weight="bold">Primary Key (PK):</text>
-  <text x="270" y="1594" class="col-norm">Surrogate primary key guaranteeing physical referential efficiency (AUTO_INCREMENT)</text>
-
-  <rect x="80" y="1615" width="40" height="18" fill="#EFF6FF"/>
-  <text x="85" y="1629" class="col-fk">FK</text>
-  <text x="130" y="1629" class="col-norm" font-weight="bold">Foreign Key (FK):</text>
-  <text x="270" y="1629" class="col-norm">Referential integrity link to referenced parent primary key (with CASCADE or RESTRICT rules)</text>
-
-  <rect x="80" y="1650" width="70" height="18" fill="#FEF3C7"/>
-  <text x="85" y="1664" class="col-pk" fill="#B45309">DISCRIM</text>
-  <text x="160" y="1664" class="col-norm" font-weight="bold">Discriminator:</text>
-  <text x="270" y="1664" class="col-norm">Weak entity partial key (e.g. size_label, measurement_type) forming composite candidate key with Owner FK</text>
-
-  <!-- Item 3: Weak Entity Justification Note -->
-  <rect x="1200" y="1510" width="1120" height="175" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="4"/>
-  <text x="1220" y="1535" class="col-norm" font-weight="bold">Weak Entity Academic Resolution &amp; Relational Correspondence:</text>
-  <text x="1220" y="1560" class="col-norm">• GARMENT_SIZE cannot exist without an owning GARMENT; a size label like "32W 30L" has no standalone meaning.</text>
-  <text x="1220" y="1582" class="col-norm">• Conceptual Key: Composite {garment_id, size_label}. Relational implementation preserves this via UQ(garment_id, size_label).</text>
-  <text x="1220" y="1604" class="col-norm">• Surrogate garment_size_id is retained to prevent bulky compound foreign keys in child tables (PURCHASE, GARMENT_MEASUREMENT).</text>
-  <text x="1220" y="1626" class="col-norm">• GARMENT_MEASUREMENT is a second-order weak entity dependent on GARMENT_SIZE via UQ(garment_size_id, measurement_type).</text>
-  <text x="1220" y="1648" class="col-norm">• Referential Actions: GARMENT deletion uses RESTRICT to protect sizes; GARMENT_SIZE deletion cascades to MEASUREMENTS.</text>
-</svg>
-"""
-    with open("docs/diagrams/relational_schema_diagram.svg", "w", encoding="utf-8") as f:
-        f.write(svg)
-
-    doc = fitz.open("docs/diagrams/relational_schema_diagram.svg")
-    pdf_bytes = doc.convert_to_pdf()
-    pdf_doc = fitz.open("pdf", pdf_bytes)
-    pdf_doc.save("docs/diagrams/relational_schema_diagram.pdf")
-
-    page = pdf_doc[0]
-    pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0))
-    pix.save("docs/diagrams/relational_schema_diagram.png")
-    print("[SUCCESS] Regenerated docs/diagrams/relational_schema_diagram.png & .pdf")
-
-    # Also keep relational_schema.* in sync
-    try:
-        pix.save("docs/diagrams/relational_schema.png")
-        pdf_doc.save("docs/diagrams/relational_schema.pdf")
-        with open("docs/diagrams/relational_schema.svg", "w", encoding="utf-8") as f:
-            f.write(svg)
-        print("[SUCCESS] Synchronized docs/diagrams/relational_schema.png, .pdf, & .svg")
-    except Exception as e:
-        print("[NOTICE] relational_schema sync:", e)
-
-
-if __name__ == "__main__":
-    generate_conceptual_erd()
-    generate_relational_schema_diagram()
-    print("[DONE] Both diagrams successfully updated with pristine routing!")
+from pathlib import Path
+import json, math, html, shutil, sys
+from collections import defaultdict
+from PIL import Image, ImageFont
+
+HERE = Path(__file__).resolve().parent
+AUDIT_PATH = HERE / 'docs' / 'diagrams' / 'FitCheck_Schema_Audit.json'
+SCHEMA = json.loads(AUDIT_PATH.read_text(encoding='utf-8'))
+OUT = HERE / 'docs' / 'diagrams'
+OUT.mkdir(exist_ok=True)
+ORDER = ['USER', 'BODY_PROFILE', 'BRAND', 'GARMENT', 'GARMENT_SIZE', 'GARMENT_MEASUREMENT', 'PURCHASE', 'FIT_REVIEW', 'REVIEW_AUDIT']
+
+def keys(name):
+    grouped = defaultdict(list)
+    for row in SCHEMA[name]['keys']:
+        grouped[(row['CONSTRAINT_TYPE'], row['CONSTRAINT_NAME'])].append(row['COLUMN_NAME'])
+    return dict(grouped)
+
+def primary(name):
+    return next(columns for (kind, _), columns in keys(name).items() if kind == 'PRIMARY KEY')
+
+RELATIONS = []
+for child in ORDER:
+    for fk in SCHEMA[child]['foreign_keys']:
+        parent = fk['REFERENCED_TABLE_NAME'].upper()
+        column = next(c for c in SCHEMA[child]['columns'] if c['COLUMN_NAME'] == fk['COLUMN_NAME'])
+        unique = any(cols == [fk['COLUMN_NAME']] for cols in keys(child).values())
+        RELATIONS.append({**fk, 'child': child, 'parent': parent,
+                          'parent_participation': '(0,1)' if unique else '(0,N)',
+                          'child_participation': '(1,1)' if column['IS_NULLABLE'] == 'NO' else '(0,1)'})
+assert len(SCHEMA) == 9 and len(RELATIONS) == 8
+assert all(len(primary(n)) == 1 for n in ORDER)
+assert not SCHEMA['REVIEW_AUDIT']['foreign_keys']
+
+def esc(value): return html.escape(str(value), quote=True)
+
+class SVG:
+    def __init__(self, width, height, title, subtitle):
+        self.w, self.h = width, height
+        self.elements = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
+          '<defs><marker id="arrow" viewBox="0 0 12 10" refX="11" refY="5" markerWidth="12" markerHeight="10" orient="auto"><path d="M0,0 L12,5 L0,10 Z" fill="black"/></marker></defs>',
+          '<g font-family="Times New Roman,serif" fill="black" stroke="none">',
+          f'<rect width="{width}" height="{height}" fill="white"/>',
+          f'<rect x="22" y="22" width="{width-44}" height="{height-44}" fill="none" stroke="black" stroke-width="2"/>']
+        self.text(width/2, 80, title, 43, bold=True)
+        self.text(width/2, 126, subtitle, 25)
+        self.path([(22,155),(width-22,155)], 1.5)
+
+    def text(self, x,y,label,size=26,anchor='middle',bold=False,underline=False):
+        self.elements.append(f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" dominant-baseline="middle"'+(' font-weight="bold"' if bold else '')+(' text-decoration="underline"' if underline else '')+f'>{esc(label)}</text>')
+
+    def path(self, points, width=2, arrow=False):
+        self.elements.append('<path d="'+' '.join(('M' if i==0 else 'L')+f'{x},{y}' for i,(x,y) in enumerate(points))+f'" fill="none" stroke="black" stroke-width="{width}"'+(' marker-end="url(#arrow)"' if arrow else '')+'/>')
+
+    def rectangle(self,x,y,w,h):
+        self.elements.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="white" stroke="black" stroke-width="2"/>')
+
+    def save(self,path):
+        path.write_text('\n'.join(self.elements)+ '\n</g></svg>',encoding='utf-8')
+
+FONT = ImageFont.truetype('C:/Windows/Fonts/times.ttf',26)
+ENTITIES = {
+ 'USER':(650,400,300,86), 'BODY_PROFILE':(330,1000,320,86),
+ 'BRAND':(2600,400,300,86), 'GARMENT':(2600,1000,300,86),
+ 'GARMENT_SIZE':(2600,1640,360,86), 'GARMENT_MEASUREMENT':(2600,2260,460,86),
+ 'PURCHASE':(820,1710,320,86), 'FIT_REVIEW':(1420,1000,320,86),
+ 'REVIEW_AUDIT':(900,2390,360,86),
+}
+ATTRIBUTES = {
+ 'USER':[(270,240),(530,200),(770,190),(1040,240),(1060,370),(650,550)],
+ 'BODY_PROFILE':[(145,830),(120,1080),(130,1200),(290,1320),(500,1300),(640,1180),(660,1030),(560,820)],
+ 'BRAND':[(2250,210),(2600,195),(2990,230)],
+ 'GARMENT':[(2310,830),(3050,820),(3140,980),(3100,1140),(3080,1300)],
+ 'GARMENT_SIZE':[(2970,1550),(2990,1710)],
+ 'GARMENT_MEASUREMENT':[(3030,2140),(3090,2320),(2980,2470),(2580,2520)],
+ 'PURCHASE':[(450,1560),(350,1720),(470,1920),(750,2010),(1060,1940)],
+ 'FIT_REVIEW':[(1120,900),(1100,1050),(1120,1190),(1320,1320),(1600,1330),(1780,1190),(1810,1040),(1760,900)],
+ 'REVIEW_AUDIT':[(520,2250),(520,2390),(650,2560),(1160,2260),(1290,2390),(1120,2560)],
+}
+# Traditional Chen maximum-cardinality labels: parent 1, child N (or 1 for UNIQUE FK).
+CHEN = {
+ 'fk_profile_user': ('HAS_PROFILE',(360,690),[(500,420),(360,635)],[(360,745),(330,957)],(350,505),(405,888)),
+ 'fk_purchase_user': ('MAKES',(840,1450),[(650,443),(840,620),(840,1395)],[(840,1505),(820,1667)],(900,715),(900,1610)),
+ 'fk_review_user': ('WRITES',(1210,720),[(800,400),(1100,720)],[(1320,720),(1420,957)],(1030,530),(1430,830)),
+ 'fk_garment_brand': ('PRODUCES',(2600,700),[(2600,443),(2600,645)],[(2600,755),(2600,957)],(2670,520),(2680,865)),
+ 'fk_size_garment': ('OFFERS_SIZE',(2600,1400),[(2600,1043),(2600,1345)],[(2600,1455),(2600,1597)],(2670,1210),(2680,1530)),
+ 'fk_measurement_size': ('HAS_MEASUREMENT',(2600,1950),[(2600,1683),(2600,1895)],[(2600,2005),(2600,2217)],(2680,1800),(2680,2100)),
+ 'fk_purchase_size': ('INCLUDES',(1700,1710),[(2420,1640),(2240,1710),(1810,1710)],[(1590,1710),(980,1710)],(2330,1610),(1060,1670)),
+ 'fk_review_size': ('REVIEWS',(2100,1000),[(2420,1640),(2280,1500),(2280,1000),(2210,1000)],[(1990,1000),(1580,1000)],(2190,1530),(1660,960)),
+}
+
+def double_path(svg,points):
+    # Parallel paths denote total participation, NOT an identifying diamond.
+    for shift in [-3,3]:
+        adjusted=[]
+        for i,(x,y) in enumerate(points):
+            a=points[max(0,i-1)];b=points[min(len(points)-1,i+1)]
+            length=math.hypot(b[0]-a[0],b[1]-a[1]) or 1
+            adjusted.append((round(x-shift*(b[1]-a[1])/length,2),round(y+shift*(b[0]-a[0])/length,2)))
+        svg.path(adjusted,1.8)
+
+def chen():
+    s=SVG(3400,2820,'FitCheck - Conceptual Entity-Relationship Diagram (Chen Notation)',
+          'Traditional Chen cardinalities (1 / N); double lines = total participation, single lines = optional participation.')
+    for r in RELATIONS:
+        label,(x,y),parent_path,child_path,parent_label,child_label=CHEN[r['CONSTRAINT_NAME']]
+        s.elements.append(f'<g data-fk="{r["CONSTRAINT_NAME"]}" data-parent="{r["parent"]}" data-child="{r["child"]}">')
+        s.path(parent_path,2)
+        double_path(s,child_path)
+        half_width = max(110, FONT.getlength(label) * 23 / 26 / 2 + 20)
+        s.elements.append(f'<polygon points="{x-half_width},{y} {x},{y-55} {x+half_width},{y} {x},{y+55}" fill="white" stroke="black" stroke-width="2"/>')
+        s.text(x,y,label,23,bold=True)
+        s.text(*parent_label,'1',27,bold=True)
+        s.text(*child_label,'1' if r['parent_participation'] == '(0,1)' else 'N',27,bold=True)
+        s.elements.append('</g>')
+    for name in ORDER:
+        x,y,w,h=ENTITIES[name]
+        fk_columns={f['COLUMN_NAME'] for f in SCHEMA[name]['foreign_keys']}
+        columns=[c for c in SCHEMA[name]['columns'] if c['COLUMN_NAME'] not in fk_columns]
+        assert len(columns)==len(ATTRIBUTES[name]),name
+        s.elements.append(f'<g data-entity="{name}">')
+        for column,(ax,ay) in zip(columns,ATTRIBUTES[name]):
+            label=column['COLUMN_NAME'];rx=max(70,FONT.getlength(label)/2+23);ry=31
+            dx,dy=ax-x,ay-y
+            scale=min((w/2)/abs(dx) if dx else float('inf'),(h/2)/abs(dy) if dy else float('inf'))
+            ellipse_scale=1/math.sqrt((dx/rx)**2+(dy/ry)**2)
+            s.path([(x+dx*scale,y+dy*scale),(ax-dx*ellipse_scale,ay-dy*ellipse_scale)],1.6)
+            s.elements.append(f'<ellipse cx="{ax}" cy="{ay}" rx="{rx}" ry="{ry}" fill="white" stroke="black" stroke-width="1.7"/>')
+            s.elements.append(f'<g data-attribute="{label}" data-pk="{str(label in primary(name)).lower()}">')
+            s.text(ax,ay,label,26,underline=label in primary(name))
+            s.elements.append('</g>')
+        s.rectangle(x-w/2,y-h/2,w,h)
+        s.text(x,y,name,30,bold=True)
+        s.elements.append('</g>')
+    s.text(900,2670,'REVIEW_AUDIT stores historical review_id and user_id values.',26)
+    s.text(900,2710,'Neither identifier has a foreign key; audit history survives review deletion.',25)
+    s.text(2440,2710,'All nine entities have independent primary keys.',25)
+    s.text(2440,2750,'Existence dependency does not imply Chen identification dependency.',24)
+    s.save(OUT/'FitCheck_ER_Diagram_Final.svg')
+
+BOXES={'USER':(130,200),'BODY_PROFILE':(130,900),'PURCHASE':(1210,200),'FIT_REVIEW':(1210,1000),
+       'GARMENT_SIZE':(2290,200),'GARMENT_MEASUREMENT':(2290,1100),'BRAND':(3370,200),
+       'GARMENT':(3370,750),'REVIEW_AUDIT':(3370,1550)}
+BW,HH,RH=700,64,52
+def row_y(name,column):
+    i=next(i for i,c in enumerate(SCHEMA[name]['columns']) if c['COLUMN_NAME']==column)
+    return BOXES[name][1]+HH+(i+.5)*RH
+
+def relational():
+    s=SVG(4200,2250,'FitCheck - Relational Schema',
+          'All implemented columns and enforced foreign keys; arrows run from FK rows to referenced PK rows.')
+    previous=[]
+    # Ports enter exact FK/PK rows, with distinct lanes and a jump at crossings.
+    routes={
+      'fk_profile_user':[(130,row_y('BODY_PROFILE','user_id')),(70,row_y('BODY_PROFILE','user_id')),(70,290),(130,290)],
+      'fk_purchase_user':[(1210,row_y('PURCHASE','user_id')),(1050,row_y('PURCHASE','user_id')),(1050,280),(830,280)],
+      'fk_review_user':[(1210,row_y('FIT_REVIEW','user_id')),(930,row_y('FIT_REVIEW','user_id')),(930,300),(830,300)],
+      'fk_purchase_size':[(1910,row_y('PURCHASE','garment_size_id')),(2100,row_y('PURCHASE','garment_size_id')),(2100,278),(2290,278)],
+      'fk_review_size':[(1910,row_y('FIT_REVIEW','garment_size_id')),(2040,row_y('FIT_REVIEW','garment_size_id')),(2040,302),(2290,302)],
+      'fk_measurement_size':[(2290,row_y('GARMENT_MEASUREMENT','garment_size_id')),(2200,row_y('GARMENT_MEASUREMENT','garment_size_id')),(2200,290),(2290,290)],
+      'fk_size_garment':[(2990,row_y('GARMENT_SIZE','garment_id')),(3200,row_y('GARMENT_SIZE','garment_id')),(3200,row_y('GARMENT','garment_id')),(3370,row_y('GARMENT','garment_id'))],
+      'fk_garment_brand':[(4070,row_y('GARMENT','brand_id')),(4140,row_y('GARMENT','brand_id')),(4140,290),(4070,290)],
+    }
+    for r in RELATIONS:
+        points=routes[r['CONSTRAINT_NAME']]
+        s.elements.append(f'<g data-fk="{r["CONSTRAINT_NAME"]}" data-source="{r["child"]}.{r["COLUMN_NAME"]}" data-target="{r["parent"]}.{r["REFERENCED_COLUMN_NAME"]}">')
+        # A white break on the underlying line distinguishes crossing from joining.
+        for a,b in zip(points,points[1:]):
+            for c,d in previous:
+                cross=None
+                if a[0]==b[0] and c[1]==d[1] and min(a[1],b[1])<c[1]<max(a[1],b[1]) and min(c[0],d[0])<a[0]<max(c[0],d[0]):cross=(a[0],c[1])
+                if a[1]==b[1] and c[0]==d[0] and min(a[0],b[0])<c[0]<max(a[0],b[0]) and min(c[1],d[1])<a[1]<max(c[1],d[1]):cross=(c[0],a[1])
+                if cross:s.elements.append(f'<circle cx="{cross[0]}" cy="{cross[1]}" r="6" fill="white"/>')
+        s.path(points,2.2,True)
+        previous+=list(zip(points,points[1:]))
+        s.elements.append('</g>')
+    for name in ORDER:
+        x,y=BOXES[name];data=SCHEMA[name]
+        groups=keys(name);unique=[v for (kind,_),v in groups.items() if kind=='UNIQUE']
+        composites=[v for v in unique if len(v)>1]
+        notes=['UNIQUE ('+', '.join(v)+')' for v in composites]
+        for fk in data['foreign_keys']:
+            notes += [f'{fk["COLUMN_NAME"]} -> {fk["REFERENCED_TABLE_NAME"].upper()}({fk["REFERENCED_COLUMN_NAME"]})',
+                      f'ON DELETE {fk["DELETE_RULE"]}; ON UPDATE {fk["UPDATE_RULE"]}']
+            relation = next(r for r in RELATIONS if r['CONSTRAINT_NAME'] == fk['CONSTRAINT_NAME'])
+            notes.append(f'{relation["parent"]} {relation["parent_participation"]} -- {name} {relation["child_participation"]}')
+        if name=='REVIEW_AUDIT':notes=['review_id / user_id are historical identifiers, not FKs.','Audit records survive deletion of the original review.']
+        height=HH+len(data['columns'])*RH+max(18,len(notes)*33+18)
+        s.elements.append(f'<g data-table="{name}">')
+        s.rectangle(x,y,BW,height)
+        s.text(x+BW/2,y+HH/2,name,32,bold=True)
+        s.path([(x,y+HH),(x+BW,y+HH)],1.7)
+        for i,column in enumerate(data['columns']):
+            label=column['COLUMN_NAME'];cy=y+HH+(i+.5)*RH
+            flags=[]
+            if label in primary(name):flags.append('PK')
+            if any(f['COLUMN_NAME']==label for f in data['foreign_keys']):flags.append('FK')
+            if [label] in unique:flags.append('UQ')
+            for j,combo in enumerate(composites,1):
+                if label in combo:flags.append('UQ'+str(j))
+            s.elements.append(f'<g data-column="{label}" data-flags="{",".join(flags)}">')
+            s.text(x+18,cy,label,25,'start',underline=label in primary(name))
+            datatype=column['COLUMN_TYPE'].upper()+(' NULL' if column['IS_NULLABLE']=='YES' else '')
+            s.text(x+315,cy,datatype,23,'start')
+            s.text(x+BW-18,cy,','.join(flags),22,'end',bold=bool(flags))
+            s.elements.append('</g>')
+            s.path([(x,cy+RH/2),(x+BW,cy+RH/2)],.65)
+        ny=y+HH+len(data['columns'])*RH+25
+        for note in notes:
+            s.text(x+18,ny,note,21,'start');ny+=33
+        s.elements.append('</g>')
+    s.text(2100,2120,'PK = primary key; FK = enforced foreign key; UQ = single-column UNIQUE. UQ1 marks the two columns in one composite UNIQUE constraint.',25)
+    s.text(2100,2160,'NULL is shown explicitly; every other column is NOT NULL. No composite primary keys and no identifying relationships are implemented.',25)
+    s.text(2100,2200,'The notes make optional participation explicit; the Chen diagram shows the same design with 1/N labels and participation lines.',25)
+    s.save(OUT/'FitCheck_Relational_Schema_Final.svg')
+
+def audit_report():
+    lines=['# FitCheck diagram schema audit','',
+      'Source: live MySQL INFORMATION_SCHEMA / SHOW CREATE TABLE, cross-checked with database/fitcheck_setup.sql, database/fitcheck_ddl.sql, database/queries/advanced_concepts.sql and SQLAlchemy models.',
+      'No database objects or data were changed. The setup script creates eight core tables; the DDL/advanced-concepts scripts and model additionally implement REVIEW_AUDIT.', '',
+      '| Relation | Primary key | Other candidate / UNIQUE keys | Classification | Identifying relationship |',
+      '|---|---|---|---|---|']
+    for name in ORDER:
+        uq=['('+', '.join(v)+')' for (kind,_),v in keys(name).items() if kind=='UNIQUE']
+        lines.append(f'| {name} | {", ".join(primary(name))} | {"; ".join(uq) or "None"} | Regular, independent surrogate PK | None |')
+    lines+=['','GARMENT_SIZE and GARMENT_MEASUREMENT are existence-dependent on their parent entities, but they are modeled as regular entities because the implemented schema assigns each an independent surrogate primary key. Therefore they are not weak entities under strict Chen identification semantics.', '',
+      '## Complete FK / participation matrix','',
+      'The internal matrix uses (min,max) participation. The final Chen image uses traditional 1/N maximum-cardinality labels instead: 1 at the parent, N at the child (1 at both ends for the UNIQUE profile FK). Double child-side lines show total participation; single parent-side lines show optional participation. Every FK is NOT NULL, but the database does not require any parent to have children.', '',
+      '| Constraint | Child column | Parent key | Parent participation | Child participation | ON DELETE | ON UPDATE |',
+      '|---|---|---|---|---|---|---|']
+    for r in RELATIONS:
+        lines.append(f'| {r["CONSTRAINT_NAME"]} | {r["child"]}.{r["COLUMN_NAME"]} | {r["parent"]}.{r["REFERENCED_COLUMN_NAME"]} | {r["parent_participation"]} | {r["child_participation"]} | {r["DELETE_RULE"]} | {r["UPDATE_RULE"]} |')
+    lines+=['','REVIEW_AUDIT has no FK on review_id or user_id. Both are historical values, not referential relationships. The audit triggers record review lifecycle events; history survives review deletion. The diagrams deliberately show the audit table without referential connectors and explain this in a note.', '', '## Columns and CHECK constraints']
+    for name in ORDER:
+        lines += ['',f'### {name}', '', ', '.join(f'`{c["COLUMN_NAME"]}` {c["COLUMN_TYPE"]} '+('NULL' if c['IS_NULLABLE']=='YES' else 'NOT NULL') for c in SCHEMA[name]['columns'])]
+        for check in SCHEMA[name]['checks']:
+            lines.append(f'- `{check["CONSTRAINT_NAME"]}`: `{check["CHECK_CLAUSE"]}`')
+    lines+=['','## Source / rendering notes','',
+      'FitCheck_Schema_Audit.json preserves the metadata used to generate both diagrams. The renderer verifies nine entities, all columns, all primary keys and all eight FK connectors. No double rectangles, double diamonds, derived attributes or multivalued attributes are invented.',
+      'The current live review_text type is represented as captured. Review Settings may legitimately switch its TEXT/MEDIUMTEXT capacity later without changing its conceptual attribute.',
+      'Live/source difference: REVIEW_AUDIT currently has action VARCHAR(20), user_id NOT NULL and changed_at TIMESTAMP NULL; the DDL template declares VARCHAR(10), user_id NULL and changed_at NOT NULL. The diagrams and snapshot follow the actual live MySQL definition; no implementation was changed. These differences do not create any foreign keys or alter audit-history semantics.',
+      'Older narrative documents and the original Draw.io reference are outside this diagram-only correction. Use the two Final images and synchronized image/vector/PDF aliases for submission.']
+    (OUT/'FitCheck_Diagram_Audit.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+
+def render():
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser=p.chromium.launch(channel='msedge',headless=True)
+        for name,(w,h) in [('FitCheck_ER_Diagram_Final',(3400,2820)),('FitCheck_Relational_Schema_Final',(4200,2250))]:
+            page=browser.new_page(viewport={'width':w,'height':h},device_scale_factor=2)
+            page.set_content('<html><head><style>@page{size:'+str(w)+'px '+str(h)+'px;margin:0}html,body{margin:0;padding:0;background:white}</style></head><body>'+ (OUT/(name+'.svg')).read_text(encoding='utf-8')+'</body></html>')
+            page.screenshot(path=str(OUT/(name+'.png')),full_page=True)
+            page.pdf(path=str(OUT/(name+'.pdf')),width=f'{w}px',height=f'{h}px',print_background=True,margin={'top':'0','bottom':'0','left':'0','right':'0'})
+            page.close()
+        browser.close()
+
+def sync_aliases():
+    for canonical,aliases in [('FitCheck_ER_Diagram_Final',['conceptual_er_diagram','er_diagram']),('FitCheck_Relational_Schema_Final',['relational_schema','relational_schema_diagram'])]:
+        for alias in aliases:
+            for ext in ['svg','png','pdf']:
+                shutil.copyfile(OUT/(canonical+'.'+ext),OUT/(alias+'.'+ext))
+    with Image.open(OUT/'FitCheck_Relational_Schema_Final.png') as im:
+        im.convert('RGB').save(OUT/'relational_schema.jpeg',quality=98,subsampling=0,dpi=(300,300))
+
+if __name__=='__main__':
+    chen();relational();audit_report();render();sync_aliases()
+    print('Generated:',OUT)
